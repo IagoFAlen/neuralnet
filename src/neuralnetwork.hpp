@@ -37,9 +37,11 @@ namespace neuralnets {
     // Neuron in a layer
     typedef struct Neuron {
         unsigned int id;
+        double neuronValue;            // Neuron's output (before activation)
         double activation;              // Neuron's output (after activation)
         double bias;                    // Bias term
         double deltaLoss;               // Error gradient (delta)
+        double target;                  // Target Value
         Connection* connections;          // Outgoing connections (to next layer)
         Connection* lastConnection;       // Tail of outgoing connections
         Connection* previousConnections;  // Incoming connections (from previous layer)
@@ -48,9 +50,11 @@ namespace neuralnets {
 
         Neuron(){
             id = 0;
+            neuronValue = 0;
             activation = 0;
             bias = 0;
             deltaLoss = 0;
+            target = 0;
             connections = NULL;
             lastConnection = NULL;
             previousConnections = NULL;

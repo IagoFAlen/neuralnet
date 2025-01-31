@@ -71,7 +71,7 @@ void neuralnets::add_neuron(LAYER* layer, unsigned int id, double bias) {
     layer->numNeurons++; // Update neuron count
 }
 
-LAYER* create_layer(int num_neurons, unsigned int layer_id) {
+LAYER* neuralnets::create_layer(int num_neurons, unsigned int layer_id) {
     LAYER* new_layer = new LAYER();
     new_layer->id = layer_id;
 

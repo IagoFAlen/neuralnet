@@ -22,7 +22,8 @@ namespace neuralnets {
         double weight;                  // Connection weight
         double deltaWeight;             // Weight update during backpropagation
         Connection* next;        // Next connection in the list
-
+        Connection* lastConnection; // Last connection in the list
+        
         Connection(){
             id = 0;
             backwardNeuron = NULL;
@@ -30,6 +31,7 @@ namespace neuralnets {
             weight = 0.0;
             deltaWeight = 0.0;
             next = NULL;
+            lastConnection = NULL;
         }
 
     } CONNECTION;
@@ -43,9 +45,7 @@ namespace neuralnets {
         double deltaLoss;               // Error gradient (delta)
         double target;                  // Target Value
         Connection* connections;          // Outgoing connections (to next layer)
-        Connection* lastConnection;       // Tail of outgoing connections
         Connection* previousConnections;  // Incoming connections (from previous layer)
-        Connection* lastPreviousConnection; // Tail of incoming connections
         Neuron* next;                     // Next neuron in the layer
 
         Neuron(){
@@ -56,9 +56,7 @@ namespace neuralnets {
             deltaLoss = 0;
             target = 0;
             connections = NULL;
-            lastConnection = NULL;
             previousConnections = NULL;
-            lastPreviousConnection = NULL;
             next = NULL;
         }
 

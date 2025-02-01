@@ -9,37 +9,28 @@ using namespace neuralnets;
 using namespace math;
 
 namespace neuralnets {
-    void create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron){
+    void create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron) {
         CONNECTION* newConnection = new CONNECTION();
         
+        // Initialize connection properties
         newConnection->id = id;
         newConnection->backwardNeuron = backwardNeuron;
         newConnection->afterwardNeuron = afterwardNeuron;
-        newConnection->weight = weight; // Use the passed weight
-        newConnection->deltaWeight = 0.0;
-        newConnection->next = NULL;
-
-        // Case 1: First connection in the neuron
-        if (backwardNeuron->connections == NULL) {
-            backwardNeuron->connections = newConnection; // Update head
-            backwardNeuron->lastConnection = newConnection; // Update tail
-        }
-        // Case 2: Append to existing connections
-        else {
-            backwardNeuron->lastConnection->next = newConnection; // Link last node to new node
-            backwardNeuron->lastConnection = newConnection; // Update tail
-        }
-
-        // Add to incoming list of the destination neuron (afterwardNeuron)
-        if (afterwardNeuron->previousConnections == NULL) {
-            afterwardNeuron->previousConnections = newConnection;
-            afterwardNeuron->lastPreviousConnection = newConnection;
+        newConnection->weight = weight;
+    
+        // Add to backwardNeuron's outgoing connections
+        if (backwardNeuron->connections == nullptr) {
+            backwardNeuron->connections = newConnection;
+            backwardNeuron->connections->lastConnection = newConnection;
         } else {
-            afterwardNeuron->lastPreviousConnection->next = newConnection;
-            afterwardNeuron->lastPreviousConnection = newConnection;
+            CONNECTION* current = backwardNeuron->connections->lastConnection;
+            current->next = newConnection;
+            backwardNeuron->connections->lastConnection = newConnection;
         }
 
+        afterwardNeuron->previousConnections = backwardNeuron->connections;
     }
+
 
     // Create and initialize a neuron
     NEURON* create_neuron(unsigned int id, double bias) {
@@ -49,9 +40,7 @@ namespace neuralnets {
         newNeuron->bias = bias;
         newNeuron->deltaLoss = 0.0;
         newNeuron->connections = NULL;
-        newNeuron->lastConnection = NULL;
         newNeuron->previousConnections = NULL;
-        newNeuron->lastPreviousConnection = NULL;
         newNeuron->next = NULL;
         return newNeuron;
     }
@@ -124,22 +113,20 @@ namespace neuralnets {
         return nn;
     }
 
-    void connect_layers(LAYER* current_Layer, LAYER* next_layer) {
-        if (!current_Layer || !next_layer) return;
+    void connect_layers(LAYER* currentLayer, LAYER* next_layer) {
+        if (!currentLayer || !next_layer) return;
 
-        // He initialization for ReLU: sqrt(6.0 / n_input_neurons)
-        double he_scale = sqrt(6.0 / current_Layer->numNeurons);
-        
-        unsigned int conn_id = 0;
+        double he_scale = sqrt(6.0 / currentLayer->numNeurons);
 
-        for(NEURON* src_neuron = current_Layer->neurons; src_neuron != NULL; src_neuron = src_neuron->next){
-            for(NEURON* dest_neuron = next_layer->neurons; dest_neuron != NULL; dest_neuron = dest_neuron->next){
-                // Generate weight between -he_scale and he_scale
+        for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
+            unsigned int conn_id = 0; // Reset ID for each source neuron
+            for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
                 double weight = ((double)rand() / RAND_MAX) * 2 * he_scale - he_scale;
-                create_connection(conn_id++, src_neuron, weight, dest_neuron);
+                create_connection(conn_id++, src, weight, dest);
             }
         }
     }
+
 
     void feed_forward(NEURAL_NETWORK* nn){
         for(LAYER* currentLayer = nn->inputLayer->next; currentLayer != NULL; currentLayer = currentLayer->next){

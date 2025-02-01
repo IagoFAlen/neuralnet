@@ -106,7 +106,7 @@ namespace neuralnets {
     LAYER* create_layer(int num_neurons, unsigned int layer_id);
     void connect_layers(LAYER* prev_layer, LAYER* next_layer);
     NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate);
-    void neuralnets::feed_forward(NEURAL_NETWORK* nn);
+    void feed_forward(NEURAL_NETWORK* nn);
     void print_nn_io(NEURAL_NETWORK* nn);
 
 } // namespace neuralnets

@@ -2,9 +2,11 @@
 
 #include "neuralnetwork.hpp"
 #include "list.hpp"
+#include "math.hpp"
 
 using namespace std;
 using namespace neuralnets;
+using namespace math;
 
 void neuralnets::create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron){
     CONNECTION* newConnection = new CONNECTION();
@@ -134,6 +136,42 @@ void neuralnets::connect_layers(LAYER* current_Layer, LAYER* next_layer) {
             // Generate weight between -he_scale and he_scale
             double weight = ((double)rand() / RAND_MAX) * 2 * he_scale - he_scale;
             create_connection(conn_id++, src_neuron, weight, dest_neuron);
+        }
+    }
+}
+
+void neuralnets::feed_forward(NEURAL_NETWORK* nn){
+    for(LAYER* currentLayer = nn->inputLayer->next; currentLayer != NULL; currentLayer = currentLayer->next){
+        for(NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
+            for(CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != NULL; currentConnection = currentConnection->next){
+                currentNeuron->neuronValue += (currentConnection->backwardNeuron->activation * currentConnection->weight);
+            }
+
+            currentNeuron->neuronValue += currentNeuron->bias;
+
+            // Apply ReLU to neuron
+            if(currentLayer != nn->outputLayer)
+                currentNeuron->activation = math::relu(currentNeuron->neuronValue);
+        }
+    }
+
+    math::softmax(nn->outputLayer);
+}
+
+void print_nn_io(NEURAL_NETWORK* nn){
+    cout << "\033[1;36m----------------------------------------------------------------------------------------------------------------\033[0m" << endl;
+    for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
+        cout << "\033[1;34mLayer " << currentLayer->id << ":\033[0m" << endl;
+        for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+            cout << "\t\033[1;32mNeuron " << currentNeuron->id << ":\033[0m " 
+                 << currentNeuron->activation << " - \033[1;31mtarget:\033[0m " << currentNeuron->target  
+                 << " - \033[1;33mbias:\033[0m " << currentNeuron->bias << endl;
+            for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
+                cout << "\t\t\033[1;35mConnection " << currentConnection->id << ":\033[0m ("
+                     << currentConnection->backwardNeuron->id << ") _ \033[1;36m" << currentConnection->weight << "\033[0m _ (" 
+                     << currentConnection->afterwardNeuron->id << ")"
+                     << " -> \033[1;31mWeight gradient:\033[0m " << currentConnection->deltaWeight << endl;
+            }
         }
     }
 }

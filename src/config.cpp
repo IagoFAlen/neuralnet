@@ -49,7 +49,7 @@ void config::initialize_neurons(NEURAL_NETWORK* nn, LIST_INFO* inputList, LIST_I
     
     int inputIndex = 0;
     for(NEURON* currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-        currentNeuron->neuronValue = get_value_by_index(inputList->list, inputIndex);
+        currentNeuron->activation = currentNeuron->neuronValue = get_value_by_index(inputList->list, inputIndex);
         inputIndex++;
     }
 
@@ -74,6 +74,7 @@ void config::train(NEURAL_NETWORK* nn, string filePath){
     
     while(getline(trainFile, line)){
         initialize_neurons(nn, inputList, targetList, line);
-        
+        neuralnets::feed_forward(nn);
+        neuralnets::print_nn_io(nn);
     }
 }

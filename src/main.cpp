@@ -13,6 +13,7 @@ using namespace neuralnets;
 using namespace ds_list;
 using namespace config;
 
+string TRAIN_FILE_PATH = "../../training/training.csv";
 
 int main(int argc, char *argv[]){
     srand(time(NULL));
@@ -23,6 +24,8 @@ int main(int argc, char *argv[]){
     NEURAL_NETWORK* nn = new NEURAL_NETWORK();
 
     nn = config::initialize(1, numNeuronsPerLayerList, argc, argv, 0.5);
+
+    config::train(nn, TRAIN_FILE_PATH);
 
     return 0;
 }

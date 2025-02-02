@@ -50,7 +50,9 @@ namespace config {
         
         int inputIndex = 0;
         for(NEURON* currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-            currentNeuron->activation = currentNeuron->neuronValue = get_value_by_index(inputList->list, inputIndex);
+            double normalizedInput = (get_value_by_index(inputList->list, inputIndex) / 100);
+            currentNeuron->neuronValue = normalizedInput;
+            currentNeuron->activation = currentNeuron->neuronValue;
             inputIndex++;
         }
 

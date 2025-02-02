@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <ctime>
 
 #include "neuralnetwork.hpp"
@@ -131,6 +132,8 @@ namespace neuralnets {
     void feed_forward(NEURAL_NETWORK* nn){
         for(LAYER* currentLayer = nn->inputLayer->next; currentLayer != NULL; currentLayer = currentLayer->next){
             for(NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
+                currentNeuron->neuronValue = 0;
+
                 for(CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != NULL; currentConnection = currentConnection->next){
                     currentNeuron->neuronValue += (currentConnection->backwardNeuron->activation * currentConnection->weight);
                 }
@@ -148,13 +151,16 @@ namespace neuralnets {
 
     void print_nn_io(NEURAL_NETWORK* nn){
         cout << "\033[1;36m----------------------------------------------------------------------------------------------------------------\033[0m" << endl;
-        
+
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             cout << "\033[1;34mLayer " << currentLayer->id << ":\033[0m" << endl;
-            
+
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 // Check if the neuron is from the output layer
                 bool isOutputLayer = (currentLayer == nn->outputLayer);
+
+                // Set precision for output
+                cout << fixed << setprecision(5); // 5 digits after the decimal
 
                 // If it's from the output layer, compare target and activation
                 if (isOutputLayer && currentNeuron->activation == currentNeuron->target) {
@@ -169,7 +175,7 @@ namespace neuralnets {
                         << " - \033[1;33mbias:\033[0m " << currentNeuron->bias << endl;
                 }
 
-                // Print connections
+                // Print connections (no change needed here)
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
                     cout << "\t\t\033[1;35mConnection " << currentConnection->id << ":\033[0m ("
                         << currentConnection->backwardNeuron->id << ") _ \033[1;36m" << currentConnection->weight << "\033[0m _ (" 
@@ -178,6 +184,6 @@ namespace neuralnets {
                 }
             }
         }
+        cout << defaultfloat; // Reset to default floating-point format after printing
     }
-
 }

@@ -51,8 +51,6 @@ namespace config {
         }
         
         int inputIndex = 0;
-        show(inputList);
-        show(targetList);
 
         for(NEURON* currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
             double normalizedInput = (get_value_by_index(inputList->list, inputIndex) / 100.00);

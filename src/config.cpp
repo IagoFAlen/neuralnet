@@ -51,8 +51,11 @@ namespace config {
         }
         
         int inputIndex = 0;
+        show(inputList);
+        show(targetList);
+
         for(NEURON* currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-            double normalizedInput = (get_value_by_index(inputList->list, inputIndex) / 100);
+            double normalizedInput = (get_value_by_index(inputList->list, inputIndex) / 100.00);
             currentNeuron->neuronValue = normalizedInput;
             currentNeuron->activation = currentNeuron->neuronValue;
             inputIndex++;
@@ -63,6 +66,8 @@ namespace config {
             currentNeuron->target = get_value_by_index(targetList->list, targetIndex);
             targetIndex++;
         }
+
+        //utils::print_nn_io(nn);
 
         empty(inputList);
         empty(targetList);

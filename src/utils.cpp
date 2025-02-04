@@ -1,3 +1,4 @@
+#include <iomanip>
 #include "utils.hpp"
 #include "neuralnetwork.hpp"
 
@@ -46,6 +47,8 @@ namespace utils{
 
     void print_nn_io_previous(NEURAL_NETWORK* nn){
         separator();
+
+        //cout << fixed << setprecision(8);
 
         for (LAYER* currentLayer = nn->inputLayer; currentLayer!= nullptr; currentLayer = currentLayer->next) {
             cout << "\033[1;34mLayer " << currentLayer->id << ":\033[0m" << endl;

@@ -37,7 +37,6 @@ namespace neuralnets {
             afterwardNeuron->previousConnections->lastConnectionAsPrevious = newConnection; // Update tail
         }
 
-        cout << "id: " << index++ << endl;
     }
 
 
@@ -137,23 +136,36 @@ namespace neuralnets {
     }
 
 
-    void feed_forward(NEURAL_NETWORK* nn){
-        for(LAYER* currentLayer = nn->inputLayer->next; currentLayer != NULL; currentLayer = currentLayer->next){
-            for(NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-                currentNeuron->neuronValue = 0;
+    void feed_forward(NEURAL_NETWORK* nn) {
+        for (LAYER* currentLayer = nn->inputLayer->next; currentLayer != NULL; currentLayer = currentLayer->next) {
+            cout << "STARTING FROM LAYER " << currentLayer->id << endl;
+            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
+                cout << "\tSTARTING FROM NEURON " << currentNeuron->id << endl;
+                currentNeuron->neuronValue = 0.00;
 
-                for(CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != NULL; currentConnection = currentConnection->next){
-                    currentNeuron->neuronValue += (currentConnection->backwardNeuron->activation * currentConnection->weight);
+                double test_sum = 0.0;
+                if (currentNeuron->previousConnections != NULL) {
+                    for (CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != nullptr; currentConnection = currentConnection->nextAsPrevious){
+                        cout << "\t\tSTARTING FROM CONNECTION " << currentConnection->id << endl;
+                        double multiplication = (currentConnection->backwardNeuron->activation * currentConnection->weight);
+                        test_sum += multiplication;
+                        cout << "\t\t\tAdding to afterward neuron SUM(" << currentConnection->afterwardNeuron->id << ") - backNeuron(" << currentConnection->backwardNeuron->activation << "): "
+                            << currentConnection->backwardNeuron->activation
+                            << " x " << currentConnection->weight << " = " << multiplication << endl;
+                        
+                        cout << "\t\t\t\tThen the test_sum should be: " << test_sum << endl;
+                    }
                 }
-
+                cout << endl;
+                currentNeuron->neuronValue = test_sum;
                 currentNeuron->neuronValue += currentNeuron->bias;
+                currentNeuron->activation = math::relu(currentNeuron->neuronValue);
 
-                // Apply ReLU to neuron
-                if(currentLayer != nn->outputLayer)
-                    currentNeuron->activation = math::relu(currentNeuron->neuronValue);
             }
+            cout << endl << endl;
         }
 
         math::softmax(nn->outputLayer);
     }
+
 }

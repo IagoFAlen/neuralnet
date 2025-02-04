@@ -4,10 +4,12 @@
 
 #include "config.hpp"
 #include "neuralnetwork.hpp"
+#include "utils.hpp"
 
 using namespace std;
 using namespace config;
 using namespace neuralnets;
+using namespace utils;
 
 namespace config {
     NEURAL_NETWORK* initialize(unsigned int id, LIST_INFO* numNeuronsPerLayerList, int argc, char *argv[], double learning_rate){
@@ -74,6 +76,7 @@ namespace config {
 
         ifstream trainFile;
         trainFile.open(filePath);
+
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
             return;
@@ -83,8 +86,9 @@ namespace config {
             cout << "Read line: " << line << endl;
             initialize_neurons(nn, inputList, targetList, line);
             neuralnets::feed_forward(nn);
-            neuralnets::print_nn_io(nn);
-
+            utils::print_nn_io(nn);
+            utils::separator();
+            utils::print_nn_io_previous(nn);
         }
     }
 }

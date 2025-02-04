@@ -17,13 +17,15 @@ namespace neuralnets {
     // Connection between two neurons
     typedef struct Connection {
         unsigned int id;
-        Neuron* backwardNeuron;  // Pointer to the source neuron
-        Neuron* afterwardNeuron; // Pointer to the destination neuron
-        double weight;                  // Connection weight
-        double deltaWeight;             // Weight update during backpropagation
-        Connection* next;        // Next connection in the list
-        Connection* lastConnection; // Last connection in the list
-        
+        Neuron* backwardNeuron;                 // Pointer to the source neuron
+        Neuron* afterwardNeuron;                // Pointer to the destination neuron
+        double weight;                          // Connection weight
+        double deltaWeight;                     // Weight update during backpropagation
+        Connection* next;                       // Next connection in the list
+        Connection* lastConnection;             // Pointer to the lastConnection from neuron
+        Connection* nextAsPrevious;             // Pointer to the connections from the afterward Neuron
+        Connection* lastConnectionAsPrevious;   // Pointer to the last connection from the afterward Neuron
+
         Connection(){
             id = 0;
             backwardNeuron = NULL;
@@ -32,6 +34,9 @@ namespace neuralnets {
             deltaWeight = 0.0;
             next = NULL;
             lastConnection = NULL;
+            nextAsPrevious = NULL;
+            lastConnection = NULL;
+            lastConnectionAsPrevious = NULL;
         }
 
     } CONNECTION;
@@ -39,14 +44,14 @@ namespace neuralnets {
     // Neuron in a layer
     typedef struct Neuron {
         unsigned int id;
-        double neuronValue;            // Neuron's output (before activation)
-        double activation;              // Neuron's output (after activation)
-        double bias;                    // Bias term
-        double deltaLoss;               // Error gradient (delta)
-        double target;                  // Target Value
-        Connection* connections;          // Outgoing connections (to next layer)
-        Connection* previousConnections;  // Incoming connections (from previous layer)
-        Neuron* next;                     // Next neuron in the layer
+        double neuronValue;                 // Neuron's output (before activation)
+        double activation;                  // Neuron's output (after activation)
+        double bias;                        // Bias term
+        double deltaLoss;                   // Error gradient (delta)
+        double target;                      // Target Value
+        Connection* connections;            // Outgoing connections (to next layer)
+        Connection* previousConnections;    // Connections linked to the previous layer
+        Neuron* next;                       // Next neuron in the layer
 
         Neuron(){
             id = 0;
@@ -105,7 +110,6 @@ namespace neuralnets {
     void connect_layers(LAYER* prev_layer, LAYER* next_layer);
     NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate);
     void feed_forward(NEURAL_NETWORK* nn);
-    void print_nn_io(NEURAL_NETWORK* nn);
 
 } // namespace neuralnets
 

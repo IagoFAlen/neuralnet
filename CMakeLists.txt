@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 project(neuralnet)
 
 # Add the executable
-add_executable(${PROJECT_NAME} src/main.cpp src/config.cpp src/neuralnetwork.cpp src/math.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/config.cpp src/neuralnetwork.cpp src/math.cpp src/utils.cpp)
 
 # Add include directories
 include_directories(/usr/local/include)

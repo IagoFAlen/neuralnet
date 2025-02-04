@@ -10,26 +10,34 @@ using namespace neuralnets;
 using namespace math;
 
 namespace neuralnets {
-    void create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron) {
+    static int index = 0;
+    void create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron){
         CONNECTION* newConnection = new CONNECTION();
-        
-        // Initialize connection properties
+
         newConnection->id = id;
         newConnection->backwardNeuron = backwardNeuron;
-        newConnection->afterwardNeuron = afterwardNeuron;
         newConnection->weight = weight;
-    
-        // Add to backwardNeuron's outgoing connections
-        if (backwardNeuron->connections == nullptr) {
+        newConnection->afterwardNeuron = afterwardNeuron;
+
+        if(!backwardNeuron->connections){
             backwardNeuron->connections = newConnection;
             backwardNeuron->connections->lastConnection = newConnection;
-        } else {
-            CONNECTION* current = backwardNeuron->connections->lastConnection;
-            current->next = newConnection;
+        }else{
+            backwardNeuron->connections->lastConnection->next = newConnection;
             backwardNeuron->connections->lastConnection = newConnection;
         }
 
-        afterwardNeuron->previousConnections = backwardNeuron->connections;
+        // Link to afterward neuron's previous (incoming) connections
+        if (!afterwardNeuron->previousConnections) {
+            afterwardNeuron->previousConnections = newConnection;
+            newConnection->lastConnectionAsPrevious = newConnection; // <-- KEY FIX
+        } else {
+            // Get the current tail of the incoming connections list
+            afterwardNeuron->previousConnections->lastConnectionAsPrevious->nextAsPrevious = newConnection;
+            afterwardNeuron->previousConnections->lastConnectionAsPrevious = newConnection; // Update tail
+        }
+
+        cout << "id: " << index++ << endl;
     }
 
 
@@ -147,43 +155,5 @@ namespace neuralnets {
         }
 
         math::softmax(nn->outputLayer);
-    }
-
-    void print_nn_io(NEURAL_NETWORK* nn){
-        cout << "\033[1;36m----------------------------------------------------------------------------------------------------------------\033[0m" << endl;
-
-        for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
-            cout << "\033[1;34mLayer " << currentLayer->id << ":\033[0m" << endl;
-
-            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
-                // Check if the neuron is from the output layer
-                bool isOutputLayer = (currentLayer == nn->outputLayer);
-
-                // Set precision for output
-                cout << fixed << setprecision(5); // 5 digits after the decimal
-
-                // If it's from the output layer, compare target and activation
-                if (isOutputLayer && currentNeuron->activation == currentNeuron->target) {
-                    // Change target color to green if it matches the activation
-                    cout << "\t\033[1;32mNeuron " << currentNeuron->id << ":\033[0m " 
-                        << currentNeuron->activation << " - \033[1;32mtarget:\033[0m " << currentNeuron->target
-                        << " - \033[1;33mbias:\033[0m " << currentNeuron->bias << endl;
-                } else {
-                    // Default color for target when it's not equal to activation
-                    cout << "\t\033[1;32mNeuron " << currentNeuron->id << ":\033[0m " 
-                        << currentNeuron->activation << " - \033[1;31mtarget:\033[0m " << currentNeuron->target
-                        << " - \033[1;33mbias:\033[0m " << currentNeuron->bias << endl;
-                }
-
-                // Print connections (no change needed here)
-                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
-                    cout << "\t\t\033[1;35mConnection " << currentConnection->id << ":\033[0m ("
-                        << currentConnection->backwardNeuron->id << ") _ \033[1;36m" << currentConnection->weight << "\033[0m _ (" 
-                        << currentConnection->afterwardNeuron->id << ")"
-                        << " -> \033[1;31mWeight gradient:\033[0m " << currentConnection->deltaWeight << endl;
-                }
-            }
-        }
-        cout << defaultfloat; // Reset to default floating-point format after printing
     }
 }

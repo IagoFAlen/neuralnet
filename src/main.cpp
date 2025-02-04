@@ -16,7 +16,7 @@ using namespace config;
 
 int main(int argc, char *argv[]){
     srand(time(NULL));
-    string TRAIN_FILE_PATH = "/home/john/playground/neuralnet/training/training.csv";
+    string TRAIN_FILE_PATH = "/home/john/playground/neuralnets/training/training.csv";
 
     LIST_INFO* numNeuronsPerLayerList = new LIST_INFO();
 

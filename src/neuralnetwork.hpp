@@ -92,6 +92,7 @@ namespace neuralnets {
         LAYER* inputLayer;              // Pointer to the input layer
         LAYER* outputLayer;             // Pointer to the output layer
         double learningRate;            // Learning rate for gradient descent
+        double lossFunction;            // Cross Entropy Loss Function
         ds_list::LIST_INFO* layersInfo; // Contains the number of layers and number of neurons on each layer
 
         NeuralNetwork(){
@@ -99,6 +100,7 @@ namespace neuralnets {
             inputLayer = NULL;
             outputLayer = NULL;
             learningRate = 0;
+            lossFunction = 0;
         }
         
     } NEURAL_NETWORK;
@@ -110,7 +112,12 @@ namespace neuralnets {
     void connect_layers(LAYER* prev_layer, LAYER* next_layer);
     NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate);
     void feed_forward(NEURAL_NETWORK* nn);
+    void loss_function(NEURAL_NETWORK* nn);
+    void track_output_layer_errors(NEURAL_NETWORK* nn);
+    void propagate_error(NEURAL_NETWORK* nn);
+    void update_weights_and_biases(NEURAL_NETWORK* nn);
+    void backpropagation(NEURAL_NETWORK* nn);
 
-} // namespace neuralnets
+}
 
 #endif // NEURALNETWORK_H

@@ -7,5 +7,5 @@ namespace math{
     double relu(double x);
     double relu_derivative(double x);
     void softmax(LAYER* outputLayer);
-    void softmax_derivative(LAYER* outputLayer);
+    double softmax_derivative(double activation);
 }

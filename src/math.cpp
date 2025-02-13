@@ -26,9 +26,7 @@ namespace math {
         }
     }
 
-    void softmax_derivative(LAYER* outputLayer){
-        for(NEURON* currentNeuron = outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-            currentNeuron->deltaLoss = currentNeuron->activation - currentNeuron->target;
-        }
+    double softmax_derivative(double activation){
+        return activation * (1.0 - activation);
     }
 }

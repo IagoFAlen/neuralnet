@@ -158,19 +158,17 @@ namespace neuralnets {
         math::softmax(nn->outputLayer);
     }
 
-    void loss_function(NEURAL_NETWORK* nn){
+    void loss_function(NEURAL_NETWORK* nn) {
         double lossFunction = 0.00;
-        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
-            lossFunction += currentNeuron->target * log(currentNeuron->activation);
+        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+            lossFunction += currentNeuron->target * log(currentNeuron->activation + 1e-9); // Add 1e-9 to avoid log(0)
         }
-
         nn->lossFunction = -lossFunction;
     }
 
-    void track_output_layer_errors(NEURAL_NETWORK* nn){
-        for(NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-            double error = currentNeuron->target - currentNeuron->activation;
-            currentNeuron->deltaLoss = error - math::softmax_derivative(currentNeuron->activation);
+    void track_output_layer_errors(NEURAL_NETWORK* nn) {
+        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+            currentNeuron->deltaLoss = currentNeuron->activation - currentNeuron->target;
         }
     }
 
@@ -186,14 +184,13 @@ namespace neuralnets {
         }
     }
 
-    void update_weights_and_biases(NEURAL_NETWORK* nn){
-        for(LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next){
-            for(NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-                for(CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next){
-                    currentConnection->weight += nn->learningRate * currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
+    void update_weights_and_biases(NEURAL_NETWORK* nn) {
+        for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
+            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
+                    currentConnection->weight -= nn->learningRate * currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
                 }
-
-                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss; 
+                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss;
             }
         }
     }

@@ -57,7 +57,7 @@ namespace neuralnets {
             activation = 0;
             bias = 0;
             deltaLoss = 0;
-            target = 0;
+            target = -1.00;
             connections = NULL;
             previousConnections = NULL;
             next = NULL;

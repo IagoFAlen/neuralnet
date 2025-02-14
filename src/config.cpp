@@ -85,8 +85,8 @@ namespace config {
             return;
         }
 
-        int i = 0;
-        bool blockFlag = true;
+        //int i = 0;
+        //bool blockFlag = true;
         while(getline(trainFile, line)){
             
             initialize_neurons(nn, inputList, targetList, line);
@@ -95,17 +95,19 @@ namespace config {
             //utils::separator();
             //utils::print_nn_io_previous(nn);
             neuralnets::backpropagation(nn);
+            cout << "Read line: " << line << endl;
+            cout << "Loss Function: " << nn->lossFunction << endl;
             //utils::print_nn_io(nn);
-            if(i < 11 || i > 1738609){
-                cout << "Read line: " << line << endl;
-                if(i > 10 && blockFlag){
-                    blockFlag = false;
-                    utils::separator();
+            /*
+                if(i < 11 || i > 1738609){
+                    if(i > 10 && blockFlag){
+                        blockFlag = false;
+                        utils::separator();
+                    }
                 }
-                cout << "Loss Function: " << nn->lossFunction << endl;
-            }
 
-            i++;
+                i++;
+            */
         }
     }
 }

@@ -30,7 +30,7 @@ namespace neuralnets {
         // Link to afterward neuron's previous (incoming) connections
         if (!afterwardNeuron->previousConnections) {
             afterwardNeuron->previousConnections = newConnection;
-            newConnection->lastConnectionAsPrevious = newConnection; // <-- KEY FIX
+            newConnection->lastConnectionAsPrevious = newConnection;
         } else {
             // Get the current tail of the incoming connections list
             afterwardNeuron->previousConnections->lastConnectionAsPrevious->nextAsPrevious = newConnection;

@@ -159,14 +159,12 @@ namespace neuralnets {
     }
 
     void loss_function(NEURAL_NETWORK* nn){
-        nn->lossFunction = 0.00;
-
-        for(NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-            if(currentNeuron->target == 1){
-                nn->lossFunction = log(currentNeuron->activation + 1e-9);
-                break;
-            }     
+        double lossFunction = 0.00;
+        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
+            lossFunction += currentNeuron->target * log(currentNeuron->activation);
         }
+
+        nn->lossFunction = -lossFunction;
     }
 
     void track_output_layer_errors(NEURAL_NETWORK* nn){
@@ -195,7 +193,7 @@ namespace neuralnets {
                     currentConnection->weight += nn->learningRate * currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
                 }
 
-                currentNeuron->bias += nn->learningRate * currentNeuron->deltaLoss; 
+                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss; 
             }
         }
     }
@@ -206,5 +204,5 @@ namespace neuralnets {
         propagate_error(nn);
         update_weights_and_biases(nn);
     }
-    
+
 }

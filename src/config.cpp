@@ -90,8 +90,11 @@ namespace config {
             initialize_neurons(nn, inputList, targetList, line);
             neuralnets::feed_forward(nn);
             utils::print_nn_io(nn);
-            utils::separator();
-            utils::print_nn_io_previous(nn);
+            //utils::separator();
+            //utils::print_nn_io_previous(nn);
+            neuralnets::backpropagation(nn);
+            //utils::print_nn_io(nn);
+            cout << "Loss Function: " << nn->lossFunction << endl;
         }
     }
 }

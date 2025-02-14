@@ -38,8 +38,7 @@ namespace utils{
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
                     cout << "\t\t\033[1;35mConnection " << currentConnection->id << ":\033[0m ("
                         << currentConnection->backwardNeuron->id << ") _ \033[1;36m" << currentConnection->weight << "\033[0m _ (" 
-                        << currentConnection->afterwardNeuron->id << ")"
-                        << " -> \033[1;31mWeight gradient:\033[0m " << currentConnection->deltaWeight << endl;
+                        << currentConnection->afterwardNeuron->id << ")" << endl;
                 }
             }
         }
@@ -71,8 +70,7 @@ namespace utils{
                     for (CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection!= nullptr; currentConnection = currentConnection->nextAsPrevious) {
                         cout << "\t\t\033[1;35mConnection " << currentConnection->id << ":\033[0m ("
                             << currentConnection->backwardNeuron->id << ") _ \033[1;36m" << currentConnection->weight << "\033[0m _ ("
-                            << currentConnection->afterwardNeuron->id << ")"
-                            << " -> \033[1;31mWeight gradient:\033[0m " << currentConnection->deltaWeight << endl;
+                            << currentConnection->afterwardNeuron->id << ")" << endl;
                     }
                 }
             }

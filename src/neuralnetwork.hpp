@@ -20,7 +20,6 @@ namespace neuralnets {
         Neuron* backwardNeuron;                 // Pointer to the source neuron
         Neuron* afterwardNeuron;                // Pointer to the destination neuron
         double weight;                          // Connection weight
-        double deltaWeight;                     // Weight update during backpropagation
         Connection* next;                       // Next connection in the list
         Connection* lastConnection;             // Pointer to the lastConnection from neuron
         Connection* nextAsPrevious;             // Pointer to the connections from the afterward Neuron
@@ -31,7 +30,6 @@ namespace neuralnets {
             backwardNeuron = NULL;
             afterwardNeuron = NULL;
             weight = 0.0;
-            deltaWeight = 0.0;
             next = NULL;
             lastConnection = NULL;
             nextAsPrevious = NULL;

@@ -72,6 +72,21 @@ namespace config {
 
     }
 
+    void save_loss_function(double lossFunction){
+        FILE *file = fopen("/home/john/playground/neuralnets/visualize/loss_function.log", "a");
+
+        if (file == NULL) {
+            perror("Error opening loss_function.log");
+            return;
+        }
+        
+        // Write the loss value followed by a newline
+        fprintf(file, "%lf\n", lossFunction);
+        
+        // Close the file
+        fclose(file);
+    }
+
     void train(NEURAL_NETWORK* nn, string filePath){
         string line = "";
         LIST_INFO* inputList = new LIST_INFO();
@@ -95,8 +110,9 @@ namespace config {
             //utils::separator();
             //utils::print_nn_io_previous(nn);
             neuralnets::backpropagation(nn);
-            cout << "Read line: " << line << endl;
-            cout << "Loss Function: " << nn->lossFunction << endl;
+            //cout << "Read line: " << line << endl;
+            //cout << "Loss Function: " << nn->lossFunction << endl;
+            save_loss_function(nn->lossFunction);
             //utils::print_nn_io(nn);
             /*
                 if(i < 11 || i > 1738609){

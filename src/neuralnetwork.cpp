@@ -92,17 +92,14 @@ namespace neuralnets {
 
         LAYER* prev_layer = nullptr;
 
-        // 1. Create layers using a for loop
         for (ds_list::BLOCK* current_block = nn->layersInfo->list; current_block != nullptr; current_block = current_block->next) {
             LAYER* layer = create_layer(current_block->value, current_block->index);
 
-            // Link layers
             if (prev_layer != nullptr) {
                 prev_layer->next = layer;
                 layer->previous = prev_layer;
             }
 
-            // Set input/output layer pointers
             if (current_block == nn->layersInfo->list) {
                 nn->inputLayer = layer;
             }
@@ -113,7 +110,6 @@ namespace neuralnets {
             prev_layer = layer;
         }
 
-        // 2. Connect layers using another for loop
         for (LAYER* current_layer = nn->inputLayer; current_layer != nullptr && current_layer->next != nullptr; current_layer = current_layer->next) {
             connect_layers(current_layer, current_layer->next);
         }

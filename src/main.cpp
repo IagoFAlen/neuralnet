@@ -3,6 +3,7 @@
 #include <cstring>
 #include <ctime>
 #include <cstdio>
+#include <filesystem>
 
 #include "neuralnetwork.hpp"
 #include "config.hpp"
@@ -13,6 +14,7 @@ using namespace neuralnets;
 using namespace ds_list;
 using namespace config;
 
+namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]){
     srand(time(NULL));
@@ -23,7 +25,10 @@ int main(int argc, char *argv[]){
     cin >> userEpochs;
 
     int EPOCHS = stoi(userEpochs);
-    string TRAIN_FILE_PATH = "/home/john/playground/neuralnets/training/training.csv";
+
+    string current_directory = fs::current_path().string();
+    string TRAIN_FILE_PATH = current_directory + "/training/training.csv";
+    string CLASSIFY_FILE_PATH = current_directory + "/classification/testing.csv";
 
     NEURAL_NETWORK* nn = new NEURAL_NETWORK();
 
@@ -31,5 +36,6 @@ int main(int argc, char *argv[]){
 
     //config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, EPOCHS);
     config::train_with_epochs(nn, TRAIN_FILE_PATH, EPOCHS);
+    config::classify(nn, CLASSIFY_FILE_PATH);
     return 0;
 }

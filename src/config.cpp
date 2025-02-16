@@ -1,6 +1,8 @@
 #include <fstream>
 #include <cstring>
 #include <sstream>
+#include <filesystem>
+#include <cstring>
 
 #include "config.hpp"
 #include "neuralnetwork.hpp"
@@ -10,6 +12,8 @@ using namespace std;
 using namespace config;
 using namespace neuralnets;
 using namespace utils;
+
+namespace fs = filesystem;
 
 namespace config {
     NEURAL_NETWORK* initialize(unsigned int id, LIST_INFO* numNeuronsPerLayerList, int argc, char *argv[], double learning_rate){
@@ -72,19 +76,27 @@ namespace config {
 
     }
 
-    void save_loss_function(double lossFunction){
-        FILE *file = fopen("/home/john/playground/neuralnets/visualize/loss_function.log", "a");
+    void save_loss_function(double lossFunction, char type) {
+        string current_directory = fs::current_path().string();
 
-        if (file == NULL) {
-            perror("Error opening loss_function.log");
+        fs::path log_path;
+        
+        if (type == 'T') {
+            log_path = fs::path(current_directory) / "visualize" / "loss_function.log";
+        } else {
+            log_path = fs::path(current_directory) / "visualize" / "classify.log";
+        }
+
+        ofstream file(log_path, ios::app);
+        
+        if (!file.is_open()) {
+            perror("Error opening log file");
             return;
         }
-        
-        // Write the loss value followed by a newline
-        fprintf(file, "%lf\n", lossFunction);
-        
-        // Close the file
-        fclose(file);
+
+        file << lossFunction << "\n";
+
+        file.close();
     }
 
     void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs){
@@ -116,7 +128,7 @@ namespace config {
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
             neuralnets::backpropagation(nn);
-            save_loss_function(nn->lossFunction);
+            save_loss_function(nn->lossFunction, 'T');
             //cout << currentLine << endl;
             print_train(epoch, epochs);
         }
@@ -150,11 +162,44 @@ namespace config {
                 initialize_neurons(nn, inputList, targetList, currentLine);
                 neuralnets::feed_forward(nn);
                 neuralnets::backpropagation(nn);
-                save_loss_function(nn->lossFunction);
+                save_loss_function(nn->lossFunction, 'T');
                 //cout << currentLine << endl;
                 print_train(index, epochs * lines->size);
                 index++;
             }
         }
     }
+
+    void classify(NEURAL_NETWORK* nn, string filePath){
+        FILE_LIST_INFO* lines = new FILE_LIST_INFO();
+
+        ifstream classifyFile(filePath);
+        
+        if (!classifyFile.is_open()) {
+            cout << "Error opening file: " << filePath << endl;
+            return;
+        }
+
+        string line = "";
+
+        while (getline(classifyFile, line)) {
+            file_list::push(lines, line);
+            line = "";
+        }
+
+        classifyFile.close();
+
+        LIST_INFO* inputList = new LIST_INFO();
+        LIST_INFO* targetList = new LIST_INFO();
+
+        for(int i = 0; i < lines->size; i++){
+            string currentLine = file_list::get_line_by_index(lines->file_list, i);
+            initialize_neurons(nn, inputList, targetList, currentLine);
+            neuralnets::feed_forward(nn);
+            neuralnets::loss_function(nn);
+            save_loss_function(nn->lossFunction, 'C');
+            //cout << currentLine << endl;
+        }
+    }
+    
 }

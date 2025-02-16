@@ -1,22 +1,29 @@
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.animation as animation
 
-# Load loss values from file
-file_path = "/home/john/playground/neuralnets/visualize/loss_function.log"  # Update with your file path
+# Obter diretório atual
+current_path = os.getcwd()
+file_path = os.path.join(current_path, "visualize", "loss_function.log")
+
+# Carregar valores da função de perda
 loss_values = pd.read_csv(file_path, header=None, names=["Loss"])
 
-# Ask for the starting epoch
-start_epoch = int(input("Enter the starting epoch (1-200): "))
-epochs = np.arange(start_epoch, len(loss_values), 200)  # Select every 200th epoch
+# Perguntar ao usuário o epoch inicial
+start_epoch = int(input(f"Enter the starting epoch (1-200): "))
+
+# Selecionar epochs a cada 200 iterações
+epochs = np.arange(start_epoch, len(loss_values), 200)
+epochs = epochs[epochs < len(loss_values)]  # Garante que não saia do intervalo
 loss_subset = loss_values["Loss"].iloc[epochs]
 
-# Set Seaborn style for better visuals
+# Configurar estilo do gráfico
 sns.set_theme(style="darkgrid")
 
-# Create figure and axis
+# Criar figura e eixo
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.set_xlim(start_epoch, len(loss_values))
 min_loss = loss_subset.min()
@@ -29,16 +36,16 @@ ax.set_xlabel("Epoch")
 ax.set_ylabel("Loss")
 ax.set_title("Neural Network Learning")
 
-# Plot the initial empty line with a thinner line
-(line,) = ax.plot([], [], marker="o", linestyle="-", color="blue", lw=0.5)  # lw=0.5 makes the line thinner
+# Criar linha inicial vazia
+(line,) = ax.plot([], [], marker="o", linestyle="-", color="blue", lw=0.5)
 
-# Update function for animation
+# Função de atualização da animação
 def update(frame):
-    line.set_data(epochs[:frame], loss_subset[:frame])  # Update only X and Y data
+    line.set_data(epochs[:frame], loss_subset[:frame])
     return line,
 
-# Faster animation with blit=True
-ani = animation.FuncAnimation(fig, update, frames=len(epochs), interval=1, blit=True, repeat=False)
+# Criar animação
+ani = animation.FuncAnimation(fig, update, frames=len(epochs), interval=50, repeat=False)
 
-# Show the animation
-plt.show()  # This will display the figure interactively
+# Mostrar gráfico
+plt.show()

@@ -87,43 +87,74 @@ namespace config {
         fclose(file);
     }
 
-    void train(NEURAL_NETWORK* nn, string filePath){
-        string line = "";
-        LIST_INFO* inputList = new LIST_INFO();
-        LIST_INFO* targetList = new LIST_INFO();
+    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs){
+        FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
-        ifstream trainFile;
-        trainFile.open(filePath);
-
+        ifstream trainFile(filePath);
+        
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
             return;
         }
 
-        //int i = 0;
-        //bool blockFlag = true;
-        while(getline(trainFile, line)){
-            
-            initialize_neurons(nn, inputList, targetList, line);
-            neuralnets::feed_forward(nn);
-            //utils::print_nn_io(nn);
-            //utils::separator();
-            //utils::print_nn_io_previous(nn);
-            neuralnets::backpropagation(nn);
-            //cout << "Read line: " << line << endl;
-            //cout << "Loss Function: " << nn->lossFunction << endl;
-            save_loss_function(nn->lossFunction);
-            //utils::print_nn_io(nn);
-            /*
-                if(i < 11 || i > 1738609){
-                    if(i > 10 && blockFlag){
-                        blockFlag = false;
-                        utils::separator();
-                    }
-                }
+        string line = "";
 
-                i++;
-            */
+        while (getline(trainFile, line)) {
+            file_list::push(lines, line);
+            line = "";
+        }
+
+        trainFile.close();
+
+        for (int epoch = 0; epoch < epochs; ++epoch) {
+            int lineIndex = rand() % lines->size;
+
+            LIST_INFO* inputList = new LIST_INFO();
+            LIST_INFO* targetList = new LIST_INFO();
+
+            string currentLine = file_list::get_line_by_index(lines->file_list, lineIndex);
+            initialize_neurons(nn, inputList, targetList, currentLine);
+            neuralnets::feed_forward(nn);
+            neuralnets::backpropagation(nn);
+            save_loss_function(nn->lossFunction);
+            //cout << currentLine << endl;
+            print_train(epoch, epochs);
+        }
+    }
+
+    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, int epochs){
+        FILE_LIST_INFO* lines = new FILE_LIST_INFO();
+
+        ifstream trainFile(filePath);
+        
+        if (!trainFile.is_open()) {
+            cout << "Error opening file: " << filePath << endl;
+            return;
+        }
+
+        string line = "";
+
+        while (getline(trainFile, line)) {
+            file_list::push(lines, line);
+            line = "";
+        }
+
+        trainFile.close();
+
+        int index = 0;
+        for (int epoch = 0; epoch < epochs; ++epoch) {
+            LIST_INFO* inputList = new LIST_INFO();
+            LIST_INFO* targetList = new LIST_INFO();
+            for(int i = 0; i < lines->size; i++){
+                string currentLine = file_list::get_line_by_index(lines->file_list, i);
+                initialize_neurons(nn, inputList, targetList, currentLine);
+                neuralnets::feed_forward(nn);
+                neuralnets::backpropagation(nn);
+                save_loss_function(nn->lossFunction);
+                //cout << currentLine << endl;
+                print_train(index, epochs * lines->size);
+                index++;
+            }
         }
     }
 }

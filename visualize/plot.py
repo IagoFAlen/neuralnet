@@ -19,9 +19,14 @@ sns.set_theme(style="darkgrid")
 # Create figure and axis
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.set_xlim(start_epoch, len(loss_values))
-ax.set_ylim(loss_subset.min(), loss_subset.max())
+min_loss = loss_subset.min()
+max_loss = loss_subset.max()
+if min_loss == max_loss:
+    min_loss -= 0.01
+    max_loss += 0.01
+ax.set_ylim(min_loss, max_loss)
 ax.set_xlabel("Epoch")
-ax.set_ylabel("Error")
+ax.set_ylabel("Loss")
 ax.set_title("Neural Network Learning")
 
 # Plot the initial empty line with a thinner line

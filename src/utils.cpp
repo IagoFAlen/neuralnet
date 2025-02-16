@@ -6,6 +6,15 @@ using namespace utils;
 using namespace neuralnets;
 using namespace std;
 
+/* COLORS */
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 namespace utils{
     void separator(){
         cout << "\033[1;36m----------------------------------------------------------------------------------------------------------------\033[0m" << endl;
@@ -76,4 +85,21 @@ namespace utils{
             }
         }
     }
+
+    void print_train(int epoch, int epochs){
+        if(epoch == epochs){
+            cout << ANSI_COLOR_CYAN << "\rEpoch " << setw(4) << setfill('0') << ANSI_COLOR_BLUE << (epoch + 1)
+                << ANSI_COLOR_RESET << "/" << ANSI_COLOR_BLUE << epochs << ANSI_COLOR_CYAN << " completed. [" << ANSI_COLOR_GREEN << setw(3) 
+                << setfill(' ') << (int)((epoch + 1) * 100.0 / epochs) << "%" 
+                << ANSI_COLOR_CYAN << "]" << ANSI_COLOR_RESET << flush;
+        }else {
+            cout << ANSI_COLOR_CYAN << "\rEpoch " << setw(4) << setfill('0') << ANSI_COLOR_RED << (epoch + 1)
+                << ANSI_COLOR_RESET << "/" << ANSI_COLOR_BLUE << epochs << ANSI_COLOR_CYAN << " completed. [" << ANSI_COLOR_GREEN << setw(3) 
+                << setfill(' ') << (int)((epoch + 1) * 100.0 / epochs) << "%" 
+                << ANSI_COLOR_CYAN << "]" << ANSI_COLOR_RESET << flush;
+
+        }
+
+    }
+    
 }

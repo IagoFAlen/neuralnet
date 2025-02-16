@@ -34,8 +34,10 @@ int main(int argc, char *argv[]){
 
     nn = config::initialize(1, numNeuronsPerLayerList, argc, argv, LEARNING_RATE);
 
-    //config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, EPOCHS);
-    config::train_with_epochs(nn, TRAIN_FILE_PATH, EPOCHS);
+    bool saving_mode = false;
+    //config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, EPOCHS, saving_mode);
+    config::train_with_epochs(nn, TRAIN_FILE_PATH, EPOCHS, saving_mode);
     config::classify(nn, CLASSIFY_FILE_PATH);
+
     return 0;
 }

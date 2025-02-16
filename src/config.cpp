@@ -117,12 +117,13 @@ namespace config {
         file.close();
     }
 
-    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs){
+    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
 
-        remove_file();
+        if(!saving_mode)
+            remove_file();
 
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
@@ -154,12 +155,13 @@ namespace config {
         }
     }
 
-    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, int epochs){
+    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
 
-        remove_file();
+        if(!saving_mode)
+            remove_file();
 
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;

@@ -76,6 +76,24 @@ namespace config {
 
     }
 
+    void remove_file(){
+        string current_directory = fs::current_path().string();
+
+        fs::path log_path;
+        
+        
+        fs::path train_log_path = fs::path(current_directory) / "visualize" / "loss_function.log";
+        fs::path classify_log_path = fs::path(current_directory) / "visualize" / "classify.log";
+        
+
+        if(fs::exists(train_log_path))
+            fs::remove(train_log_path);
+        
+
+        if(fs::exists(classify_log_path))
+            fs::remove(classify_log_path);    
+    }
+
     void save_loss_function(double lossFunction, char type) {
         string current_directory = fs::current_path().string();
 
@@ -103,7 +121,9 @@ namespace config {
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
-        
+
+        remove_file();
+
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
             return;
@@ -138,7 +158,9 @@ namespace config {
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
-        
+
+        remove_file();
+
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
             return;

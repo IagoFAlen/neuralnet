@@ -18,4 +18,5 @@ namespace config {
     void train_with_epochs(NEURAL_NETWORK* nn, string filePath, int epochs);
     void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs);
     void classify(NEURAL_NETWORK* nn, string filePath);
+    void remove_file();
 }

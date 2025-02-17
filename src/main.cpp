@@ -19,12 +19,13 @@ namespace fs = std::filesystem;
 int main(int argc, char *argv[]){
     srand(time(NULL));
     LIST_INFO* numNeuronsPerLayerList = new LIST_INFO();
-    double LEARNING_RATE = 0.00001;
+    double LEARNING_RATE = 0.001;
     string userEpochs = "";
     cout << "Training times: ";
     cin >> userEpochs;
 
     int EPOCHS = stoi(userEpochs);
+    double lambda = 0.01;
 
     string current_directory = fs::current_path().string();
     string TRAIN_FILE_PATH = current_directory + "/training/training.csv";
@@ -35,9 +36,9 @@ int main(int argc, char *argv[]){
     nn = config::initialize(1, numNeuronsPerLayerList, argc, argv, LEARNING_RATE);
 
     bool saving_mode = false;
-    //config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, EPOCHS, saving_mode);
-    config::train_with_epochs(nn, TRAIN_FILE_PATH, EPOCHS, saving_mode);
-    config::classify(nn, CLASSIFY_FILE_PATH);
+    //config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, EPOCHS, saving_mode, double lambda);
+    config::train_with_epochs(nn, TRAIN_FILE_PATH, EPOCHS, saving_mode, lambda);
+    config::classify(nn, CLASSIFY_FILE_PATH, lambda);
 
     return 0;
 }

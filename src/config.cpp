@@ -117,7 +117,7 @@ namespace config {
         file.close();
     }
 
-    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode){
+    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode, double lambda){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
@@ -148,14 +148,14 @@ namespace config {
             string currentLine = file_list::get_line_by_index(lines->file_list, lineIndex);
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
-            neuralnets::backpropagation(nn);
+            neuralnets::backpropagation(nn, lambda);
             save_loss_function(nn->lossFunction, 'T');
             //cout << currentLine << endl;
             print_train(epoch, epochs);
         }
     }
 
-    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode){
+    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode, double lambda){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
@@ -185,7 +185,7 @@ namespace config {
                 string currentLine = file_list::get_line_by_index(lines->file_list, i);
                 initialize_neurons(nn, inputList, targetList, currentLine);
                 neuralnets::feed_forward(nn);
-                neuralnets::backpropagation(nn);
+                neuralnets::backpropagation(nn, lambda);
                 save_loss_function(nn->lossFunction, 'T');
                 //cout << currentLine << endl;
                 print_train(index, epochs * lines->size);
@@ -194,7 +194,7 @@ namespace config {
         }
     }
 
-    void classify(NEURAL_NETWORK* nn, string filePath){
+    void classify(NEURAL_NETWORK* nn, string filePath, double lambda){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream classifyFile(filePath);
@@ -220,7 +220,7 @@ namespace config {
             string currentLine = file_list::get_line_by_index(lines->file_list, i);
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
-            neuralnets::loss_function(nn);
+            neuralnets::loss_function(nn, lambda);
             save_loss_function(nn->lossFunction, 'C');
             //cout << currentLine << endl;
         }

@@ -154,12 +154,25 @@ namespace neuralnets {
         math::softmax(nn->outputLayer);
     }
 
-    void loss_function(NEURAL_NETWORK* nn) {
+    void loss_function(NEURAL_NETWORK* nn, double lambda) {
         double lossFunction = 0.00;
         for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
             lossFunction += currentNeuron->target * log(currentNeuron->activation + 1e-9); // Add 1e-9 to avoid log(0)
         }
-        nn->lossFunction = -lossFunction;
+        lossFunction = -lossFunction;
+
+        double l2_penalty = 0.0;
+        for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
+            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
+                    l2_penalty += currentConnection->weight * currentConnection->weight;
+                }
+            }
+        }
+        l2_penalty *= (lambda / 2.0);
+
+        // Total loss = cross-entropy loss + L2 regularization
+        nn->lossFunction = lossFunction + l2_penalty;
     }
 
     void track_output_layer_errors(NEURAL_NETWORK* nn) {
@@ -190,28 +203,26 @@ namespace neuralnets {
         }
     }
 
-    void update_weights_and_biases(NEURAL_NETWORK* nn) {
+    void update_weights_and_biases(NEURAL_NETWORK* nn, double lambda) {
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
                     double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
-                    double clipped_gradient = clip_gradient(gradient, -1.0, 1.0);
-                    currentConnection->weight -= nn->learningRate * clipped_gradient;
-                }
-                
-                double bias_gradient = currentNeuron->deltaLoss;
-                double clipped_bias_gradient = clip_gradient(bias_gradient, -1.0, 1.0);
+                    gradient += lambda * currentConnection->weight;
 
-                currentNeuron->bias -= nn->learningRate * clipped_bias_gradient;
+                    currentConnection->weight -= nn->learningRate * gradient;
+                }
+
+                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss;
             }
         }
     }
 
-    void backpropagation(NEURAL_NETWORK* nn){
-        loss_function(nn);
+    void backpropagation(NEURAL_NETWORK* nn, double lambda){
+        loss_function(nn, lambda);
         track_output_layer_errors(nn);
         propagate_error(nn);
-        update_weights_and_biases(nn);
+        update_weights_and_biases(nn, lambda);
     }
 
 }

@@ -110,11 +110,11 @@ namespace neuralnets {
     void connect_layers(LAYER* prev_layer, LAYER* next_layer);
     NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate);
     void feed_forward(NEURAL_NETWORK* nn);
-    void loss_function(NEURAL_NETWORK* nn);
+    void loss_function(NEURAL_NETWORK* nn, double lambda);
     void track_output_layer_errors(NEURAL_NETWORK* nn);
     void propagate_error(NEURAL_NETWORK* nn);
-    void update_weights_and_biases(NEURAL_NETWORK* nn);
-    void backpropagation(NEURAL_NETWORK* nn);
+    void update_weights_and_biases(NEURAL_NETWORK* nn, double lambda);
+    void backpropagation(NEURAL_NETWORK* nn, double lambda);
 
 }
 

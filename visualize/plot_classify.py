@@ -38,10 +38,10 @@ def plot_loss_animation(file_name):
     ax.set_ylabel("Loss")
     ax.set_title("Neural Network Learning")
 
-    (line,) = ax.plot([], [], marker="o", linestyle="-", color="blue", lw=0.5)
+    (line,) = ax.plot([], [], linestyle="-", color="blue", lw=0.5) # Removed marker="o"
 
     def update(frame):
-        line.set_data(range(frame), loss_values[:frame])
+        line.set_data(range(frame + 1), loss_values[:frame + 1])
         return line,
 
     ani = animation.FuncAnimation(fig, update, frames=len(loss_values), interval=50, blit=False, repeat=False)

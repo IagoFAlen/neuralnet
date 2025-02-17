@@ -125,7 +125,7 @@ namespace neuralnets {
         for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
             unsigned int conn_id = 0; // Reset ID for each source neuron
             for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
-                double weight = ((double)rand() / RAND_MAX) * 2 * he_scale - he_scale;
+                double weight = math::normal_distribution(0.0, sqrt(2.0 / currentLayer->numNeurons));
                 create_connection(conn_id++, src, weight, dest);
             }
         }
@@ -180,13 +180,29 @@ namespace neuralnets {
         }
     }
 
+    double clip_gradient(double gradient, double min_value, double max_value) {
+        if (gradient < min_value) {
+            return min_value;
+        } else if (gradient > max_value) {
+            return max_value;
+        } else {
+            return gradient;
+        }
+    }
+
     void update_weights_and_biases(NEURAL_NETWORK* nn) {
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
-                    currentConnection->weight -= nn->learningRate * currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
+                    double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
+                    double clipped_gradient = clip_gradient(gradient, -1.0, 1.0);
+                    currentConnection->weight -= nn->learningRate * clipped_gradient;
                 }
-                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss;
+                
+                double bias_gradient = currentNeuron->deltaLoss;
+                double clipped_bias_gradient = clip_gradient(bias_gradient, -1.0, 1.0);
+
+                currentNeuron->bias -= nn->learningRate * clipped_bias_gradient;
             }
         }
     }

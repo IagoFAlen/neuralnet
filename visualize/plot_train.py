@@ -37,11 +37,11 @@ ax.set_ylabel("Loss")
 ax.set_title("Neural Network Learning")
 
 # Criar linha inicial vazia
-(line,) = ax.plot([], [], marker="o", linestyle="-", color="blue", lw=0.5)
+(line,) = ax.plot([], [], linestyle="-", color="blue", lw=0.5)
 
 # Função de atualização da animação
 def update(frame):
-    line.set_data(epochs[:frame], loss_subset[:frame])
+    line.set_data(epochs[:frame + 1], loss_subset[:frame + 1])
     return line,
 
 # Criar animação

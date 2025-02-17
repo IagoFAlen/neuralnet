@@ -8,4 +8,5 @@ namespace math{
     double relu_derivative(double x);
     void softmax(LAYER* outputLayer);
     double softmax_derivative(double activation);
+    double normal_distribution(double mean, double stddev);
 }

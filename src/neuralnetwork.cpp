@@ -147,7 +147,8 @@ namespace neuralnets {
                 
                 currentNeuron->neuronValue = test_sum;
                 currentNeuron->neuronValue += currentNeuron->bias;
-                currentNeuron->activation = math::relu(currentNeuron->neuronValue);
+                //currentNeuron->activation = math::relu(currentNeuron->neuronValue);
+                currentNeuron->activation = math::leaky_relu(currentNeuron->neuronValue);
             }
         }
 
@@ -188,7 +189,8 @@ namespace neuralnets {
                 for(CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next){
                     sum += currentConnection->weight * currentConnection->afterwardNeuron->deltaLoss;
                 }
-                currentNeuron->deltaLoss = sum * math::relu_derivative(currentNeuron->activation);
+                //currentNeuron->deltaLoss = sum * math::relu_derivative(currentNeuron->activation);
+                currentNeuron->deltaLoss = sum * math::leaky_relu_derivative(currentNeuron->activation);
             }
         }
     }
@@ -208,12 +210,19 @@ namespace neuralnets {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
                     double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
+
                     gradient += lambda * currentConnection->weight;
 
-                    currentConnection->weight -= nn->learningRate * gradient;
+                    double clipped_gradient = clip_gradient(gradient, -1.0, 1.0);
+
+                    currentConnection->weight -= nn->learningRate * clipped_gradient;
                 }
 
-                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss;
+                double bias_gradient = currentNeuron->deltaLoss;
+
+                double clipped_bias_gradient = clip_gradient(bias_gradient, -1.0, 1.0);
+
+                currentNeuron->bias -= nn->learningRate * clipped_bias_gradient;
             }
         }
     }

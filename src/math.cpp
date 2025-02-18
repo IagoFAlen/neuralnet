@@ -16,6 +16,16 @@ namespace math {
         return (x > 0.0) ? 1.0 : 0.0;
     }
 
+    // Leaky ReLU activation function (alpha = 0.01 for small negative slope)
+    double leaky_relu(double x, double alpha){
+        return (x > 0) ? x : alpha * x;
+    }
+
+    // Derivative of Leaky ReLU
+    double leaky_relu_derivative(double x, double alpha){
+        return (x > 0) ? 1.0 : alpha;
+    }
+    
     void softmax(LAYER* outputLayer){
         double sumExp = 0.0;
 

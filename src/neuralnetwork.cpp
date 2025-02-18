@@ -133,24 +133,41 @@ namespace neuralnets {
         }
     }
 
-
     void feed_forward(NEURAL_NETWORK* nn) {
+        double dropout_rate = 0.5; // Dropout 50% of neurons
         for (LAYER* currentLayer = nn->inputLayer->next; currentLayer != NULL; currentLayer = currentLayer->next) {
+            double mean = 0.0, variance = 0.0;
+            int count = 0;
+
+            // Compute mean and variance for batch normalization
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
                 currentNeuron->neuronValue = 0.00;
 
-                double test_sum = 0.0;
                 if (currentNeuron->previousConnections != NULL) {
-                    for (CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != nullptr; currentConnection = currentConnection->nextAsPrevious){
-                        double multiplication = (currentConnection->backwardNeuron->activation * currentConnection->weight);
-                        test_sum += multiplication;                        
+                    for (CONNECTION* conn = currentNeuron->previousConnections; conn != nullptr; conn = conn->nextAsPrevious) {
+                        currentNeuron->neuronValue += conn->backwardNeuron->activation * conn->weight;
                     }
                 }
-                
-                currentNeuron->neuronValue = test_sum;
+
                 currentNeuron->neuronValue += currentNeuron->bias;
-                //currentNeuron->activation = math::relu(currentNeuron->neuronValue);
+                mean += currentNeuron->neuronValue;
+                variance += currentNeuron->neuronValue * currentNeuron->neuronValue;
+                count++;
+            }
+
+            mean /= count;
+            variance = (variance / count) - (mean * mean);
+            double stddev = sqrt(variance + 1e-8);
+
+            // Apply batch normalization
+            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
+                currentNeuron->neuronValue = (currentNeuron->neuronValue - mean) / stddev;
                 currentNeuron->activation = math::leaky_relu(currentNeuron->neuronValue);
+
+                // Apply dropout during training
+                if (currentLayer != nn->outputLayer && (rand() / (double)RAND_MAX) < dropout_rate) {
+                    currentNeuron->activation = 0.0;
+                }
             }
         }
 
@@ -160,10 +177,11 @@ namespace neuralnets {
     void loss_function(NEURAL_NETWORK* nn) {
         double lossFunction = 0.00;
         for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
-            lossFunction += currentNeuron->target * log(currentNeuron->activation + 1e-9); // Add 1e-9 to avoid log(0)
+            lossFunction += currentNeuron->target * log(currentNeuron->activation + 1e-9); // Add epsilon to avoid log(0)
         }
         lossFunction = -lossFunction;
 
+        // L2 Regularization
         double l2_penalty = 0.0;
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
@@ -174,7 +192,6 @@ namespace neuralnets {
         }
         l2_penalty *= (nn->lambda / 2.0);
 
-        // Total loss = cross-entropy loss + L2 regularization
         nn->lossFunction = lossFunction + l2_penalty;
     }
 
@@ -208,23 +225,18 @@ namespace neuralnets {
     }
 
     void update_weights_and_biases(NEURAL_NETWORK* nn) {
+        // Decay learning rate
+        nn->learningRate *= 0.9999; // Small decay per batch
+
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
                     double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
-
                     gradient += nn->lambda * currentConnection->weight;
-
-                    double clipped_gradient = clip_gradient(gradient, -1.0, 1.0);
-
+                    double clipped_gradient = clip_gradient(gradient, -5.0, 5.0);
                     currentConnection->weight -= nn->learningRate * clipped_gradient;
                 }
-
-                double bias_gradient = currentNeuron->deltaLoss;
-
-                double clipped_bias_gradient = clip_gradient(bias_gradient, -1.0, 1.0);
-
-                currentNeuron->bias -= nn->learningRate * clipped_bias_gradient;
+                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss;
             }
         }
     }

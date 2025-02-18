@@ -26,16 +26,16 @@ namespace math {
         return (x > 0) ? 1.0 : alpha;
     }
     
-    void softmax(LAYER* outputLayer){
+    void softmax(LAYER* outputLayer) {
         double sumExp = 0.0;
 
-        for(NEURON* currentNeuron = outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
+        for (NEURON* currentNeuron = outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
             currentNeuron->activation = exp(currentNeuron->neuronValue);
             sumExp += currentNeuron->activation;
         }
 
-        for(NEURON* currentNeuron = outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-            currentNeuron->activation /= sumExp;
+        for (NEURON* currentNeuron = outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
+            currentNeuron->activation /= (sumExp + 1e-8); // Add epsilon to avoid division by zero
         }
     }
 

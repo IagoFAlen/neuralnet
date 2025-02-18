@@ -79,43 +79,75 @@ namespace config {
         return newNeuralNetwork;
     }
 
-    void initialize_neurons(NEURAL_NETWORK* nn, LIST_INFO* inputList, LIST_INFO* targetList, string line){
+    void compute_mean_std(const string& filePath, double& mean, double& stddev){
+        ifstream trainFile(filePath);
+        if (!trainFile.is_open()) {
+            cerr << "Error opening file: " << filePath << endl;
+            exit(1);
+        }
+
+        string line;
+        double sum = 0.0, sum_sq = 0.0;
+        int count = 0;
+
+        while (getline(trainFile, line)) {
+            stringstream inputString(line);
+            string value;
+            while (getline(inputString, value, ',')) {
+                double trainData = atof(value.c_str());
+                sum += trainData;
+                sum_sq += trainData * trainData;
+                count++;
+            }
+        }
+
+        trainFile.close();
+
+        if (count > 0) {
+            mean = sum / count;
+            stddev = sqrt((sum_sq / count) - (mean * mean));
+            if (stddev == 0.0) stddev = 1.0; // Avoid division by zero
+        } else {
+            cerr << "Error: No data found in training file" << endl;
+            exit(1);
+        }
+
+        cout << "Computed Mean: " << mean << ", Standard Deviation: " << stddev << endl;
+    }
+
+    void initialize_neurons(NEURAL_NETWORK* nn, LIST_INFO* inputList, LIST_INFO* targetList, string line, double mean, double stddev) {
         string tempStringTrain = "";
         double trainData;
 
         stringstream inputString(line);
-        for(int i = 0; i < (nn->layersInfo->list->value + nn->layersInfo->lastBlock->value); i++){
+        for (int i = 0; i < (nn->layersInfo->list->value + nn->layersInfo->lastBlock->value); i++) {
             getline(inputString, tempStringTrain, ',');
             trainData = atof(tempStringTrain.c_str());
-            if(i < nn->layersInfo->list->value)
-                push(inputList, trainData);
-            else{
-                push(targetList, trainData);
+
+            if (i < nn->layersInfo->list->value) {
+                // Normalize using precomputed mean and stddev
+                double normalizedValue = (trainData - mean) / stddev;
+                push(inputList, normalizedValue);
+            } else {
+                push(targetList, trainData); // Target values remain unchanged
             }
-
-            string tempStringTrain = "";
         }
-        
-        int inputIndex = 0;
 
-        for(NEURON* currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
-            double normalizedInput = (get_value_by_index(inputList->list, inputIndex) / 100.00);
-            currentNeuron->neuronValue = normalizedInput;
+        int inputIndex = 0;
+        for (NEURON* currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
+            currentNeuron->neuronValue = get_value_by_index(inputList->list, inputIndex);
             currentNeuron->activation = currentNeuron->neuronValue;
             inputIndex++;
         }
 
         int targetIndex = 0;
-        for(NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
+        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
             currentNeuron->target = get_value_by_index(targetList->list, targetIndex);
             targetIndex++;
         }
 
-        //utils::print_nn_io(nn);
-
         empty(inputList);
         empty(targetList);
-
     }
 
     void remove_file(){
@@ -163,23 +195,23 @@ namespace config {
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
-
-        if(!saving_mode)
-            remove_file();
-
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
             return;
         }
 
-        string line = "";
+        if (!saving_mode)
+            remove_file();
 
+        string line;
         while (getline(trainFile, line)) {
             file_list::push(lines, line);
-            line = "";
         }
-
         trainFile.close();
+
+        // Compute Mean and Std once for normalization
+        double mean = 0.0, stddev = 1.0;
+        compute_mean_std(filePath, mean, stddev);
 
         for (int epoch = 0; epoch < epochs; ++epoch) {
             int lineIndex = rand() % lines->size;
@@ -188,55 +220,55 @@ namespace config {
             LIST_INFO* targetList = new LIST_INFO();
 
             string currentLine = file_list::get_line_by_index(lines->file_list, lineIndex);
-            initialize_neurons(nn, inputList, targetList, currentLine);
+            initialize_neurons(nn, inputList, targetList, currentLine, mean, stddev);
             neuralnets::feed_forward(nn);
             neuralnets::backpropagation(nn);
             save_loss_function(nn->lossFunction, 'T');
-            //cout << currentLine << endl;
             print_train(epoch, epochs);
         }
     }
 
-    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, bool saving_mode){
+
+    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, bool saving_mode) {
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
-
-        if(!saving_mode)
-            remove_file();
-
         if (!trainFile.is_open()) {
-            cout << "Error opening file: " << filePath << endl;
+            cerr << "Error opening file: " << filePath << endl;
             return;
         }
 
-        string line = "";
+        if (!saving_mode)
+            remove_file();
 
+        string line;
         while (getline(trainFile, line)) {
             file_list::push(lines, line);
-            line = "";
         }
-
         trainFile.close();
+
+        // Compute Mean and Std over entire dataset
+        double mean = 0.0, stddev = 1.0;
+        compute_mean_std(filePath, mean, stddev);
 
         int index = 0;
         for (int epoch = 0; epoch < nn->epochs; ++epoch) {
             LIST_INFO* inputList = new LIST_INFO();
             LIST_INFO* targetList = new LIST_INFO();
-            for(int i = 0; i < lines->size; i++){
+            for (int i = 0; i < lines->size; i++) {
                 string currentLine = file_list::get_line_by_index(lines->file_list, i);
-                initialize_neurons(nn, inputList, targetList, currentLine);
+                initialize_neurons(nn, inputList, targetList, currentLine, mean, stddev);
                 neuralnets::feed_forward(nn);
                 neuralnets::backpropagation(nn);
                 save_loss_function(nn->lossFunction, 'T');
-                //cout << currentLine << endl;
                 print_train(index, nn->epochs * lines->size);
                 index++;
             }
         }
     }
 
-    void classify(NEURAL_NETWORK* nn, string filePath){
+
+    void classify(NEURAL_NETWORK* nn, string filePath, double mean, double stddev) {
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream classifyFile(filePath);
@@ -247,25 +279,22 @@ namespace config {
         }
 
         string line = "";
-
         while (getline(classifyFile, line)) {
             file_list::push(lines, line);
-            line = "";
         }
-
         classifyFile.close();
 
         LIST_INFO* inputList = new LIST_INFO();
         LIST_INFO* targetList = new LIST_INFO();
 
-        for(int i = 0; i < lines->size; i++){
+        for (int i = 0; i < lines->size; i++) {
             string currentLine = file_list::get_line_by_index(lines->file_list, i);
-            initialize_neurons(nn, inputList, targetList, currentLine);
+            initialize_neurons(nn, inputList, targetList, currentLine, mean, stddev);
             neuralnets::feed_forward(nn);
             neuralnets::loss_function(nn);
             save_loss_function(nn->lossFunction, 'C');
-            //cout << currentLine << endl;
         }
     }
+
     
 }

@@ -82,10 +82,12 @@ namespace neuralnets {
         return new_layer;
     }
 
-    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate) {
+    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
         NEURAL_NETWORK* nn = new NEURAL_NETWORK();
         nn->id = id;
         nn->learningRate = learning_rate;
+        nn->lambda = lambda;
+        nn->epochs = epochs;
         nn->layersInfo = layer_sizes_list;
 
         if (nn->layersInfo->size == 0) return nn;
@@ -155,7 +157,7 @@ namespace neuralnets {
         math::softmax(nn->outputLayer);
     }
 
-    void loss_function(NEURAL_NETWORK* nn, double lambda) {
+    void loss_function(NEURAL_NETWORK* nn) {
         double lossFunction = 0.00;
         for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
             lossFunction += currentNeuron->target * log(currentNeuron->activation + 1e-9); // Add 1e-9 to avoid log(0)
@@ -170,7 +172,7 @@ namespace neuralnets {
                 }
             }
         }
-        l2_penalty *= (lambda / 2.0);
+        l2_penalty *= (nn->lambda / 2.0);
 
         // Total loss = cross-entropy loss + L2 regularization
         nn->lossFunction = lossFunction + l2_penalty;
@@ -205,13 +207,13 @@ namespace neuralnets {
         }
     }
 
-    void update_weights_and_biases(NEURAL_NETWORK* nn, double lambda) {
+    void update_weights_and_biases(NEURAL_NETWORK* nn) {
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
                     double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
 
-                    gradient += lambda * currentConnection->weight;
+                    gradient += nn->lambda * currentConnection->weight;
 
                     double clipped_gradient = clip_gradient(gradient, -1.0, 1.0);
 
@@ -227,11 +229,11 @@ namespace neuralnets {
         }
     }
 
-    void backpropagation(NEURAL_NETWORK* nn, double lambda){
-        loss_function(nn, lambda);
+    void backpropagation(NEURAL_NETWORK* nn){
+        loss_function(nn);
         track_output_layer_errors(nn);
         propagate_error(nn);
-        update_weights_and_biases(nn, lambda);
+        update_weights_and_biases(nn);
     }
 
 }

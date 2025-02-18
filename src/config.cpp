@@ -16,24 +16,63 @@ using namespace utils;
 namespace fs = filesystem;
 
 namespace config {
-    NEURAL_NETWORK* initialize(unsigned int id, LIST_INFO* numNeuronsPerLayerList, int argc, char *argv[], double learning_rate){
+    NEURAL_NETWORK* initialize(unsigned int id, LIST_INFO* numNeuronsPerLayerList, int argc, char *argv[]) {
         int num_layers = 0;
+        bool found_l = false, found_n = false, found_lr = false, found_lambda = false, found_epochs = false;
 
-        // Taking the parameters and setting it into layer list informations
-        for(int i = 1; i < argc; i++) {
-            if(strcmp(argv[i], "-l") == 0) {
-                num_layers = atoi(argv[i+1]);
+        double learning_rate = 0.001; // Default learning rate
+        double lambda = 0.001;        // Default lambda
+        int epochs = 1000;         // Default epochs
+
+        for (int i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "-l") == 0) {
+                num_layers = atoi(argv[i + 1]);
                 i++;
-            } else if(strcmp(argv[i], "-n") == 0) {
-                for(int j = 0; j < num_layers; j++) {
-                    ds_list::push(numNeuronsPerLayerList, atoi(argv[i+j+1]));
+                found_l = true;
+            } else if (strcmp(argv[i], "-n") == 0) {
+                if (num_layers == 0) {
+                    std::cerr << "Error: -n must be preceded by -l" << std::endl;
+                    exit(1);
+                }
+                for (int j = 0; j < num_layers; j++) {
+                    if (i + j + 1 >= argc || !isdigit(*argv[i+j+1])) {
+                        std::cerr << "Error: Invalid number of neurons or missing value after -n" << std::endl;
+                        exit(1);
+                    }
+                    ds_list::push(numNeuronsPerLayerList, atoi(argv[i + j + 1]));
                 }
                 i += num_layers;
+                found_n = true;
+            } else if (strcmp(argv[i], "--lr") == 0) {
+                learning_rate = atof(argv[i + 1]);
+                i++;
+                found_lr = true;
+            } else if (strcmp(argv[i], "--lambda") == 0) {
+                lambda = atof(argv[i + 1]);
+                i++;
+                found_lambda = true;
+            } else if (strcmp(argv[i], "--epochs") == 0) {
+                epochs = atoi(argv[i + 1]);
+                i++;
+                found_epochs = true;
             }
         }
 
-        NEURAL_NETWORK* newNeuralNetwork = create_neural_network(id, numNeuronsPerLayerList, learning_rate);
+        if (!found_l || !found_n) {
+            cerr << "Error: -l and -n are required arguments." << endl;
+            exit(1);
+        }
+        if (!found_lr) {
+            cerr << "Warning: -lr not specified, using default value: " << learning_rate << endl;
+        }
+        if (!found_lambda) {
+            cerr << "Warning: -lambda not specified, using default value: " << lambda << endl;
+        }
+        if (!found_epochs) {
+            cerr << "Warning: -epochs not specified, using default value: " << epochs << endl;
+        }
 
+        NEURAL_NETWORK* newNeuralNetwork = create_neural_network(id, numNeuronsPerLayerList, learning_rate, lambda, epochs);
         return newNeuralNetwork;
     }
 
@@ -148,14 +187,14 @@ namespace config {
             string currentLine = file_list::get_line_by_index(lines->file_list, lineIndex);
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
-            neuralnets::backpropagation(nn, lambda);
+            neuralnets::backpropagation(nn);
             save_loss_function(nn->lossFunction, 'T');
             //cout << currentLine << endl;
             print_train(epoch, epochs);
         }
     }
 
-    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode, double lambda){
+    void train_with_epochs(NEURAL_NETWORK* nn, string filePath, bool saving_mode){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
@@ -178,23 +217,23 @@ namespace config {
         trainFile.close();
 
         int index = 0;
-        for (int epoch = 0; epoch < epochs; ++epoch) {
+        for (int epoch = 0; epoch < nn->epochs; ++epoch) {
             LIST_INFO* inputList = new LIST_INFO();
             LIST_INFO* targetList = new LIST_INFO();
             for(int i = 0; i < lines->size; i++){
                 string currentLine = file_list::get_line_by_index(lines->file_list, i);
                 initialize_neurons(nn, inputList, targetList, currentLine);
                 neuralnets::feed_forward(nn);
-                neuralnets::backpropagation(nn, lambda);
+                neuralnets::backpropagation(nn);
                 save_loss_function(nn->lossFunction, 'T');
                 //cout << currentLine << endl;
-                print_train(index, epochs * lines->size);
+                print_train(index, nn->epochs * lines->size);
                 index++;
             }
         }
     }
 
-    void classify(NEURAL_NETWORK* nn, string filePath, double lambda){
+    void classify(NEURAL_NETWORK* nn, string filePath){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream classifyFile(filePath);
@@ -220,7 +259,7 @@ namespace config {
             string currentLine = file_list::get_line_by_index(lines->file_list, i);
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
-            neuralnets::loss_function(nn, lambda);
+            neuralnets::loss_function(nn);
             save_loss_function(nn->lossFunction, 'C');
             //cout << currentLine << endl;
         }

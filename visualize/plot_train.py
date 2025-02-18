@@ -56,7 +56,7 @@ def update(frame):
     return line,
 
 # Create animation
-ani = animation.FuncAnimation(fig, update, frames=len(epochs), interval=50, repeat=False)
+ani = animation.FuncAnimation(fig, update, frames=len(epochs), interval=0, repeat=False)
 
 # Show plot
 plt.show()

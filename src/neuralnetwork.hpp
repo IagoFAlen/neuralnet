@@ -90,6 +90,8 @@ namespace neuralnets {
         LAYER* inputLayer;              // Pointer to the input layer
         LAYER* outputLayer;             // Pointer to the output layer
         double learningRate;            // Learning rate for gradient descent
+        double lambda;                  // Lambda for gradient descent
+        int epochs;                     // Number of epochs
         double lossFunction;            // Cross Entropy Loss Function
         ds_list::LIST_INFO* layersInfo; // Contains the number of layers and number of neurons on each layer
 
@@ -98,6 +100,8 @@ namespace neuralnets {
             inputLayer = NULL;
             outputLayer = NULL;
             learningRate = 0;
+            lambda = 0;
+            epochs = 0;
             lossFunction = 0;
         }
         
@@ -108,13 +112,13 @@ namespace neuralnets {
     void add_neuron(LAYER* layer, unsigned int id, double bias);
     LAYER* create_layer(int num_neurons, unsigned int layer_id);
     void connect_layers(LAYER* prev_layer, LAYER* next_layer);
-    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate);
+    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs);
     void feed_forward(NEURAL_NETWORK* nn);
-    void loss_function(NEURAL_NETWORK* nn, double lambda);
+    void loss_function(NEURAL_NETWORK* nn);
     void track_output_layer_errors(NEURAL_NETWORK* nn);
     void propagate_error(NEURAL_NETWORK* nn);
-    void update_weights_and_biases(NEURAL_NETWORK* nn, double lambda);
-    void backpropagation(NEURAL_NETWORK* nn, double lambda);
+    void update_weights_and_biases(NEURAL_NETWORK* nn);
+    void backpropagation(NEURAL_NETWORK* nn);
 
 }
 

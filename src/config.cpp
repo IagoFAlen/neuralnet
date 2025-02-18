@@ -15,13 +15,16 @@ using namespace utils;
 
 namespace fs = filesystem;
 
+#define ANSI_COLOR_BRIGHT_YELLOW  "\x1b[93m"
+#define ANSI_COLOR_BRIGHT_RED     "\x1b[91m"
+
 namespace config {
     NEURAL_NETWORK* initialize(unsigned int id, LIST_INFO* numNeuronsPerLayerList, int argc, char *argv[]) {
         int num_layers = 0;
         bool found_l = false, found_n = false, found_lr = false, found_lambda = false, found_epochs = false;
 
         double learning_rate = 0.001; // Default learning rate
-        double lambda = 0.001;        // Default lambda
+        double lambda = 0.01;        // Default lambda
         int epochs = 1000;         // Default epochs
 
         for (int i = 1; i < argc; i++) {
@@ -59,17 +62,17 @@ namespace config {
         }
 
         if (!found_l || !found_n) {
-            cerr << "Error: -l and -n are required arguments." << endl;
+            cerr << ANSI_COLOR_BRIGHT_RED << "Error: -l and -n are required arguments." << endl;
             exit(1);
         }
         if (!found_lr) {
-            cerr << "Warning: -lr not specified, using default value: " << learning_rate << endl;
+            cerr << ANSI_COLOR_BRIGHT_YELLOW << "Warning: --lr not specified, using default value: " << learning_rate << endl;
         }
         if (!found_lambda) {
-            cerr << "Warning: -lambda not specified, using default value: " << lambda << endl;
+            cerr << ANSI_COLOR_BRIGHT_YELLOW << "Warning: --lambda not specified, using default value: " << lambda << endl;
         }
         if (!found_epochs) {
-            cerr << "Warning: -epochs not specified, using default value: " << epochs << endl;
+            cerr << ANSI_COLOR_BRIGHT_YELLOW << "Warning: --epochs not specified, using default value: " << epochs << endl;
         }
 
         NEURAL_NETWORK* newNeuralNetwork = create_neural_network(id, numNeuronsPerLayerList, learning_rate, lambda, epochs);

@@ -82,12 +82,13 @@ namespace neuralnets {
         return new_layer;
     }
 
-    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
+    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs, int batches) {
         NEURAL_NETWORK* nn = new NEURAL_NETWORK();
         nn->id = id;
         nn->learningRate = learning_rate;
         nn->lambda = lambda;
         nn->epochs = epochs;
+        nn->batchesSize = batches;
         nn->layersInfo = layer_sizes_list;
 
         if (nn->layersInfo->size == 0) return nn;
@@ -122,12 +123,14 @@ namespace neuralnets {
     void connect_layers(LAYER* currentLayer, LAYER* next_layer) {
         if (!currentLayer || !next_layer) return;
 
-        double he_scale = sqrt(6.0 / currentLayer->numNeurons);
+        // Xavier initialization scale factor
+        double xavier_scale = sqrt(2.0 / (currentLayer->numNeurons + next_layer->numNeurons));
 
         for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
             unsigned int conn_id = 0; // Reset ID for each source neuron
             for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
-                double weight = math::normal_distribution(0.0, sqrt(2.0 / currentLayer->numNeurons));
+                // Use Xavier initialization for weights
+                double weight = math::normal_distribution(0.0, xavier_scale);
                 create_connection(conn_id++, src, weight, dest);
             }
         }
@@ -224,19 +227,39 @@ namespace neuralnets {
         }
     }
 
+    void accumulate_gradients(NEURAL_NETWORK* nn){
+        // Accumulate gradients instead of updating weights and biases immediately
+        for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
+            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+                // Accumulate bias gradient
+                currentNeuron->accumulatedBiasGradient += currentNeuron->deltaLoss;
+
+                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
+                    // Accumulate weight gradient
+                    double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
+                    gradient += nn->lambda * currentConnection->weight; // L2 regularization
+                    currentConnection->accumulatedGradient += gradient;
+                }
+            }
+        }
+    }
+
     void update_weights_and_biases(NEURAL_NETWORK* nn) {
         // Decay learning rate
         nn->learningRate *= 0.9999; // Small decay per batch
 
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+                // Average the bias gradient and update the bias
+                currentNeuron->bias -= nn->learningRate * (currentNeuron->accumulatedBiasGradient / nn->batchesSize);
+                currentNeuron->accumulatedBiasGradient = 0.0; // Reset accumulated bias gradient
+
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
-                    double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
-                    gradient += nn->lambda * currentConnection->weight;
-                    double clipped_gradient = clip_gradient(gradient, -5.0, 5.0);
+                    // Average the weight gradient and update the weight
+                    double clipped_gradient = clip_gradient(currentConnection->accumulatedGradient / nn->batchesSize, -5.0, 5.0);
                     currentConnection->weight -= nn->learningRate * clipped_gradient;
+                    currentConnection->accumulatedGradient = 0.0; // Reset accumulated weight gradient
                 }
-                currentNeuron->bias -= nn->learningRate * currentNeuron->deltaLoss;
             }
         }
     }
@@ -245,7 +268,7 @@ namespace neuralnets {
         loss_function(nn);
         track_output_layer_errors(nn);
         propagate_error(nn);
-        update_weights_and_biases(nn);
+        accumulate_gradients(nn);
     }
 
 }

@@ -20,6 +20,7 @@ namespace neuralnets {
         Neuron* backwardNeuron;                 // Pointer to the source neuron
         Neuron* afterwardNeuron;                // Pointer to the destination neuron
         double weight;                          // Connection weight
+        double accumulatedGradient;             // Accumulated gradient for weight
         Connection* next;                       // Next connection in the list
         Connection* lastConnection;             // Pointer to the lastConnection from neuron
         Connection* nextAsPrevious;             // Pointer to the connections from the afterward Neuron
@@ -30,6 +31,7 @@ namespace neuralnets {
             backwardNeuron = NULL;
             afterwardNeuron = NULL;
             weight = 0.0;
+            accumulatedGradient = 0.0;
             next = NULL;
             lastConnection = NULL;
             nextAsPrevious = NULL;
@@ -46,6 +48,7 @@ namespace neuralnets {
         double activation;                  // Neuron's output (after activation)
         double bias;                        // Bias term
         double deltaLoss;                   // Error gradient (delta)
+        double accumulatedBiasGradient;     // Accumulated bias gradient
         double target;                      // Target Value
         Connection* connections;            // Outgoing connections (to next layer)
         Connection* previousConnections;    // Connections linked to the previous layer
@@ -57,6 +60,7 @@ namespace neuralnets {
             activation = 0;
             bias = 0;
             deltaLoss = 0;
+            accumulatedBiasGradient = 0.0;
             target = -1.0;
             connections = NULL;
             previousConnections = NULL;
@@ -92,6 +96,7 @@ namespace neuralnets {
         double learningRate;            // Learning rate for gradient descent
         double lambda;                  // Lambda for gradient descent
         int epochs;                     // Number of epochs
+        int batchesSize;                // Batch Size
         double lossFunction;            // Cross Entropy Loss Function
         ds_list::LIST_INFO* layersInfo; // Contains the number of layers and number of neurons on each layer
 
@@ -102,6 +107,7 @@ namespace neuralnets {
             learningRate = 0;
             lambda = 0;
             epochs = 0;
+            batchesSize = 0;
             lossFunction = 0;
         }
         
@@ -112,11 +118,12 @@ namespace neuralnets {
     void add_neuron(LAYER* layer, unsigned int id, double bias);
     LAYER* create_layer(int num_neurons, unsigned int layer_id);
     void connect_layers(LAYER* prev_layer, LAYER* next_layer);
-    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs);
+    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs, int batches);
     void feed_forward(NEURAL_NETWORK* nn);
     void loss_function(NEURAL_NETWORK* nn);
     void track_output_layer_errors(NEURAL_NETWORK* nn);
     void propagate_error(NEURAL_NETWORK* nn);
+    void accumulate_gradients(NEURAL_NETWORK* nn);
     void update_weights_and_biases(NEURAL_NETWORK* nn);
     void backpropagation(NEURAL_NETWORK* nn);
 

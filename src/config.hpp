@@ -17,7 +17,7 @@ namespace config {
     void initialize_neurons(NEURAL_NETWORK* nn, LIST_INFO* inputList, LIST_INFO* targetList, string line);
     void save_loss_function(double lossFunction, char type);
     void train_with_epochs(NEURAL_NETWORK* nn, string filePath, bool saving_mode);
-    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode, double lambda);
+    //void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode, double lambda);
     void classify(NEURAL_NETWORK* nn, string filePath, double mean, double stddev);
     void remove_file();
 }

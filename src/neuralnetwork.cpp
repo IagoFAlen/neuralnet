@@ -208,6 +208,8 @@ namespace neuralnets {
     }
 
     void update_weights_and_biases(NEURAL_NETWORK* nn) {
+        nn->learningRate *= 0.99999;
+        
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {

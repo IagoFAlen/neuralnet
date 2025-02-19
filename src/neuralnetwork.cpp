@@ -122,12 +122,12 @@ namespace neuralnets {
     void connect_layers(LAYER* currentLayer, LAYER* next_layer) {
         if (!currentLayer || !next_layer) return;
 
-        double he_scale = sqrt(6.0 / currentLayer->numNeurons);
+        double xavierScale = sqrt(2.0 / (currentLayer->numNeurons + next_layer->numNeurons));
 
         for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
             unsigned int conn_id = 0; // Reset ID for each source neuron
             for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
-                double weight = math::normal_distribution(0.0, sqrt(2.0 / currentLayer->numNeurons));
+                double weight = math::normal_distribution(0.0, xavierScale);
                 create_connection(conn_id++, src, weight, dest);
             }
         }

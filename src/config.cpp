@@ -190,7 +190,7 @@ namespace config {
             string currentLine = file_list::get_line_by_index(lines->file_list, lineIndex);
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
-            neuralnets::backpropagation(nn);
+            neuralnets::backpropagation(nn, epoch);
             save_loss_function(nn->lossFunction, 'T');
             //cout << currentLine << endl;
             print_train(epoch, epochs);
@@ -227,7 +227,7 @@ namespace config {
                 string currentLine = file_list::get_line_by_index(lines->file_list, i);
                 initialize_neurons(nn, inputList, targetList, currentLine);
                 neuralnets::feed_forward(nn);
-                neuralnets::backpropagation(nn);
+                neuralnets::backpropagation(nn, epoch);
                 save_loss_function(nn->lossFunction, 'T');
                 //cout << currentLine << endl;
                 print_train(index, nn->epochs * lines->size);

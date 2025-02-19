@@ -207,33 +207,49 @@ namespace neuralnets {
         }
     }
 
-    void update_weights_and_biases(NEURAL_NETWORK* nn) {
+    void update_weights_and_biases(NEURAL_NETWORK* nn, int epoch) {
+        double beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8;
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+                // Update weights
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
                     double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
-
                     gradient += nn->lambda * currentConnection->weight;
 
-                    double clipped_gradient = clip_gradient(gradient, -1.0, 1.0);
+                    // Update first and second moment estimates
+                    currentConnection->m = beta1 * currentConnection->m + (1 - beta1) * gradient;
+                    currentConnection->v = beta2 * currentConnection->v + (1 - beta2) * gradient * gradient;
 
-                    currentConnection->weight -= nn->learningRate * clipped_gradient;
+                    // Bias correction
+                    double m_hat = currentConnection->m / (1 - pow(beta1, epoch + 1));
+                    double v_hat = currentConnection->v / (1 - pow(beta2, epoch + 1));
+
+                    // Update weight
+                    currentConnection->weight -= nn->learningRate * m_hat / (sqrt(v_hat) + epsilon);
                 }
 
+                // Update bias
                 double bias_gradient = currentNeuron->deltaLoss;
 
-                double clipped_bias_gradient = clip_gradient(bias_gradient, -1.0, 1.0);
+                // Update first and second moment estimates for bias
+                currentNeuron->m_bias = beta1 * currentNeuron->m_bias + (1 - beta1) * bias_gradient;
+                currentNeuron->v_bias = beta2 * currentNeuron->v_bias + (1 - beta2) * bias_gradient * bias_gradient;
 
-                currentNeuron->bias -= nn->learningRate * clipped_bias_gradient;
+                // Bias correction for bias
+                double m_hat_bias = currentNeuron->m_bias / (1 - pow(beta1, epoch + 1));
+                double v_hat_bias = currentNeuron->v_bias / (1 - pow(beta2, epoch + 1));
+
+                // Update bias
+                currentNeuron->bias -= nn->learningRate * m_hat_bias / (sqrt(v_hat_bias) + epsilon);
             }
         }
     }
 
-    void backpropagation(NEURAL_NETWORK* nn){
+    void backpropagation(NEURAL_NETWORK* nn, int epoch){
         loss_function(nn);
         track_output_layer_errors(nn);
         propagate_error(nn);
-        update_weights_and_biases(nn);
+        update_weights_and_biases(nn, epoch);
     }
 
 }

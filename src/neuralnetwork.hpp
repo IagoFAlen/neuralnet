@@ -20,6 +20,8 @@ namespace neuralnets {
         Neuron* backwardNeuron;                 // Pointer to the source neuron
         Neuron* afterwardNeuron;                // Pointer to the destination neuron
         double weight;                          // Connection weight
+        double m;
+        double v;
         Connection* next;                       // Next connection in the list
         Connection* lastConnection;             // Pointer to the lastConnection from neuron
         Connection* nextAsPrevious;             // Pointer to the connections from the afterward Neuron
@@ -30,6 +32,8 @@ namespace neuralnets {
             backwardNeuron = NULL;
             afterwardNeuron = NULL;
             weight = 0.0;
+            m = 0.0;
+            v = 0.0;
             next = NULL;
             lastConnection = NULL;
             nextAsPrevious = NULL;
@@ -45,6 +49,8 @@ namespace neuralnets {
         double neuronValue;                 // Neuron's output (before activation)
         double activation;                  // Neuron's output (after activation)
         double bias;                        // Bias term
+        double m_bias;
+        double v_bias;
         double deltaLoss;                   // Error gradient (delta)
         double target;                      // Target Value
         Connection* connections;            // Outgoing connections (to next layer)
@@ -58,6 +64,8 @@ namespace neuralnets {
             bias = 0;
             deltaLoss = 0;
             target = -1.0;
+            m_bias = 0;
+            v_bias = 0;
             connections = NULL;
             previousConnections = NULL;
             next = NULL;
@@ -117,8 +125,8 @@ namespace neuralnets {
     void loss_function(NEURAL_NETWORK* nn);
     void track_output_layer_errors(NEURAL_NETWORK* nn);
     void propagate_error(NEURAL_NETWORK* nn);
-    void update_weights_and_biases(NEURAL_NETWORK* nn);
-    void backpropagation(NEURAL_NETWORK* nn);
+    void update_weights_and_biases(NEURAL_NETWORK* nn, int epoch);
+    void backpropagation(NEURAL_NETWORK* nn, int epoch);
 
 }
 

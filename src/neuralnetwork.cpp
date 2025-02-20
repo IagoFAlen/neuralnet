@@ -4,10 +4,12 @@
 #include "neuralnetwork.hpp"
 #include "list.hpp"
 #include "math.hpp"
+#include "config.hpp"
 
 using namespace std;
 using namespace neuralnets;
 using namespace math;
+using namespace config;
 
 namespace neuralnets {
     static int index = 0;
@@ -208,8 +210,6 @@ namespace neuralnets {
     }
 
     void update_weights_and_biases(NEURAL_NETWORK* nn) {
-        nn->learningRate *= 0.99999;
-        
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
@@ -217,14 +217,14 @@ namespace neuralnets {
 
                     gradient += nn->lambda * currentConnection->weight;
 
-                    double clipped_gradient = clip_gradient(gradient, -1.0, 1.0);
+                    double clipped_gradient = clip_gradient(gradient, -10.0, 10.0);
 
                     currentConnection->weight -= nn->learningRate * clipped_gradient;
                 }
 
                 double bias_gradient = currentNeuron->deltaLoss;
 
-                double clipped_bias_gradient = clip_gradient(bias_gradient, -1.0, 1.0);
+                double clipped_bias_gradient = clip_gradient(bias_gradient, -5.0, 5.0);
 
                 currentNeuron->bias -= nn->learningRate * clipped_bias_gradient;
             }
@@ -238,4 +238,22 @@ namespace neuralnets {
         update_weights_and_biases(nn);
     }
 
+    void predict(NEURAL_NETWORK* nn){
+        double prediction = nn->outputLayer->neurons->activation;
+        unsigned int predictionIndex = nn->outputLayer->neurons->id;
+
+        double targetIndex = nn->outputLayer->neurons->id;
+
+        for(NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
+            if(currentNeuron->target == 1)
+                targetIndex = currentNeuron->id;
+
+            if(prediction < currentNeuron->activation){
+                prediction = currentNeuron->activation;
+                predictionIndex = currentNeuron->id;
+            }
+        }
+
+        config::save_predictions(targetIndex, predictionIndex);
+    }
 }

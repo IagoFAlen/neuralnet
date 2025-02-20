@@ -119,6 +119,7 @@ namespace neuralnets {
     void propagate_error(NEURAL_NETWORK* nn);
     void update_weights_and_biases(NEURAL_NETWORK* nn);
     void backpropagation(NEURAL_NETWORK* nn);
+    void predict(NEURAL_NETWORK* nn);
 
 }
 

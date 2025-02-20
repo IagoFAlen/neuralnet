@@ -23,8 +23,8 @@ namespace config {
         int num_layers = 0;
         bool found_l = false, found_n = false, found_lr = false, found_lambda = false, found_epochs = false;
 
-        double learning_rate = 0.001; // Default learning rate
-        double lambda = 0.01;        // Default lambda
+        double learning_rate = 0.01; // Default learning rate
+        double lambda = 0.001;        // Default lambda
         int epochs = 1000;         // Default epochs
 
         for (int i = 1; i < argc; i++) {
@@ -118,7 +118,7 @@ namespace config {
 
     }
 
-    void remove_file(){
+    void remove_file_train(){
         string current_directory = fs::current_path().string();
 
         fs::path log_path;
@@ -134,6 +134,20 @@ namespace config {
 
         if(fs::exists(classify_log_path))
             fs::remove(classify_log_path);    
+    }
+
+    void remove_file_predict(){
+        string current_directory = fs::current_path().string();
+
+        fs::path log_path;
+        
+        
+        fs::path prediction_log_path = fs::path(current_directory) / "prediction" / "predict.log";
+        
+
+        if(fs::exists(prediction_log_path))
+            fs::remove(prediction_log_path);
+          
     }
 
     void save_loss_function(double lossFunction, char type) {
@@ -159,13 +173,32 @@ namespace config {
         file.close();
     }
 
-    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, int epochs, bool saving_mode, double lambda){
+    void save_predictions(double targetIndex, double predictionIndex){
+        string current_directory = fs::current_path().string();
+
+        fs::path log_path;
+        
+        log_path = fs::path(current_directory) / "prediction" / "predict.log";
+        
+        ofstream file(log_path, ios::app);
+        
+        if (!file.is_open()) {
+            perror("Error opening log file");
+            return;
+        }
+
+        file << targetIndex << "," << predictionIndex << "\n";
+
+        file.close();
+    }
+
+    void train_with_epochs_randomly(NEURAL_NETWORK* nn, string filePath, bool saving_mode) {
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
 
         ifstream trainFile(filePath);
 
-        if(!saving_mode)
-            remove_file();
+        if (!saving_mode)
+            remove_file_train();
 
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
@@ -173,7 +206,6 @@ namespace config {
         }
 
         string line = "";
-
         while (getline(trainFile, line)) {
             file_list::push(lines, line);
             line = "";
@@ -181,21 +213,27 @@ namespace config {
 
         trainFile.close();
 
-        for (int epoch = 0; epoch < epochs; ++epoch) {
-            int lineIndex = rand() % lines->size;
-
+        int index = 0;
+        for (int epoch = 0; epoch < nn->epochs; ++epoch) {
             LIST_INFO* inputList = new LIST_INFO();
             LIST_INFO* targetList = new LIST_INFO();
+            nn->learningRate *= 0.99; // Learning rate decay
 
-            string currentLine = file_list::get_line_by_index(lines->file_list, lineIndex);
-            initialize_neurons(nn, inputList, targetList, currentLine);
-            neuralnets::feed_forward(nn);
-            neuralnets::backpropagation(nn);
-            save_loss_function(nn->lossFunction, 'T');
-            //cout << currentLine << endl;
-            print_train(epoch, epochs);
+            for (int i = 0; i < lines->size; i++) {
+                int randomIndex = rand() % lines->size; // Randomly select a sample
+                string currentLine = file_list::get_line_by_index(lines->file_list, randomIndex);
+                
+                initialize_neurons(nn, inputList, targetList, currentLine);
+                neuralnets::feed_forward(nn);
+                neuralnets::backpropagation(nn);
+                save_loss_function(nn->lossFunction, 'T');
+                
+                print_train(index, nn->epochs * lines->size);
+                index++;
+            }
         }
     }
+
 
     void train_with_epochs(NEURAL_NETWORK* nn, string filePath, bool saving_mode){
         FILE_LIST_INFO* lines = new FILE_LIST_INFO();
@@ -203,7 +241,7 @@ namespace config {
         ifstream trainFile(filePath);
 
         if(!saving_mode)
-            remove_file();
+            remove_file_train();
 
         if (!trainFile.is_open()) {
             cout << "Error opening file: " << filePath << endl;
@@ -223,6 +261,7 @@ namespace config {
         for (int epoch = 0; epoch < nn->epochs; ++epoch) {
             LIST_INFO* inputList = new LIST_INFO();
             LIST_INFO* targetList = new LIST_INFO();
+            nn->learningRate *= 0.99;
             for(int i = 0; i < lines->size; i++){
                 string currentLine = file_list::get_line_by_index(lines->file_list, i);
                 initialize_neurons(nn, inputList, targetList, currentLine);
@@ -268,4 +307,35 @@ namespace config {
         }
     }
     
+    void predict(NEURAL_NETWORK* nn, string filePath){
+        FILE_LIST_INFO* lines = new FILE_LIST_INFO();
+
+        ifstream classifyFile(filePath);
+        
+        remove_file_predict();
+        if (!classifyFile.is_open()) {
+            cout << "Error opening file: " << filePath << endl;
+            return;
+        }
+
+        string line = "";
+
+        while (getline(classifyFile, line)) {
+            file_list::push(lines, line);
+            line = "";
+        }
+
+        classifyFile.close();
+
+        LIST_INFO* inputList = new LIST_INFO();
+        LIST_INFO* targetList = new LIST_INFO();
+
+        for(int i = 0; i < lines->size; i++){
+            string currentLine = file_list::get_line_by_index(lines->file_list, i);
+            initialize_neurons(nn, inputList, targetList, currentLine);
+            neuralnets::feed_forward(nn);
+            neuralnets::predict(nn);
+            //cout << currentLine << endl;
+        }
+    }
 }

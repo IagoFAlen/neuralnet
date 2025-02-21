@@ -22,4 +22,6 @@ namespace config {
     void predict(NEURAL_NETWORK* nn, string filePath);
     void remove_file_train();
     void remove_file_predict();
+    void save_neural_network(NEURAL_NETWORK* nn, const string& filePath);
+    NEURAL_NETWORK* load_neural_network(const string& filePath);
 }

@@ -5,11 +5,13 @@
 #include "list.hpp"
 #include "math.hpp"
 #include "config.hpp"
+#include "utils.hpp"
 
 using namespace std;
 using namespace neuralnets;
 using namespace math;
 using namespace config;
+using namespace utils;
 
 namespace neuralnets {
     static int index = 0;
@@ -41,6 +43,31 @@ namespace neuralnets {
 
     }
 
+    CONNECTION* find_connection(unsigned int connectionId, NEURON* backwardNeuron, NEURON* afterwardNeuron){
+        CONNECTION* tmpConnection = NULL;
+
+        for(CONNECTION* currentConnection = backwardNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next){
+            if(currentConnection->id == connectionId && currentConnection->backwardNeuron->id == backwardNeuron->id && currentConnection->afterwardNeuron->id == afterwardNeuron->id){
+                return currentConnection;
+            }
+        }
+
+        utils::handle_error("Connection not found", 1);
+        return tmpConnection;
+    }
+
+    CONNECTION* find_previous_connection(unsigned int connectionId, NEURON* backwardNeuron, NEURON* afterwardNeuron){
+        CONNECTION* tmpConnection = NULL;
+
+        for(CONNECTION* currentConnection = afterwardNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->nextAsPrevious){
+            if(currentConnection->id == connectionId && currentConnection->backwardNeuron->id == backwardNeuron->id && currentConnection->afterwardNeuron->id == afterwardNeuron->id){
+                return currentConnection;
+            }
+        }
+
+        utils::handle_error("Connection not found", 1);
+        return tmpConnection;
+    }
 
     // Create and initialize a neuron
     NEURON* create_neuron(unsigned int id, double bias) {
@@ -71,6 +98,20 @@ namespace neuralnets {
         }
 
         layer->numNeurons++; // Update neuron count
+
+        utils::handle_success("Neuron added");
+    }
+
+    NEURON* find_neuron(LAYER* layer, unsigned int neuronId){
+        NEURON* tmpNeuron = NULL;
+
+        for(NEURON* currentNeuron = layer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
+            if(currentNeuron->id == neuronId)
+                return currentNeuron;
+        }
+
+        utils::handle_warning("Could not take the neuron, returning NULL value");
+        return tmpNeuron;
     }
 
     LAYER* create_layer(int num_neurons, unsigned int layer_id) {
@@ -81,10 +122,11 @@ namespace neuralnets {
             add_neuron(new_layer, i /*id*/, 0.0 /*bias*/);
         }
 
+        utils::handle_success("Layer created.");
         return new_layer;
     }
 
-    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
+    NEURAL_NETWORK* create_neural_network_base(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs){
         NEURAL_NETWORK* nn = new NEURAL_NETWORK();
         nn->id = id;
         nn->learningRate = learning_rate;
@@ -112,13 +154,12 @@ namespace neuralnets {
             }
 
             prev_layer = layer;
-        }
 
-        for (LAYER* current_layer = nn->inputLayer; current_layer != nullptr && current_layer->next != nullptr; current_layer = current_layer->next) {
-            connect_layers(current_layer, current_layer->next);
         }
 
         return nn;
+
+        
     }
 
     void connect_layers(LAYER* currentLayer, LAYER* next_layer) {
@@ -135,6 +176,40 @@ namespace neuralnets {
         }
     }
 
+    void connect_loaded_layers(LAYER* currentLayer, LAYER* next_layer) {
+        if (!currentLayer || !next_layer) return;
+
+
+        double weight = 0.0;
+
+        for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
+            unsigned int conn_id = 0; // Reset ID for each source neuron
+            for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
+                create_connection(conn_id++, src, weight, dest);
+            }
+        }
+    }
+
+    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
+        NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs);
+        
+        for (LAYER* current_layer = nn->inputLayer; current_layer != nullptr && current_layer->next != nullptr; current_layer = current_layer->next) {
+            connect_layers(current_layer, current_layer->next);
+        }
+
+        return nn;
+    }
+
+
+    NEURAL_NETWORK* load_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
+        NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs);
+        
+        for (LAYER* current_layer = nn->inputLayer; current_layer != nullptr && current_layer->next != nullptr; current_layer = current_layer->next) {
+            connect_loaded_layers(current_layer, current_layer->next);
+        }
+
+        return nn;
+    }
 
     void feed_forward(NEURAL_NETWORK* nn) {
         for (LAYER* currentLayer = nn->inputLayer->next; currentLayer != NULL; currentLayer = currentLayer->next) {

@@ -1,4 +1,7 @@
+#include <iostream>
 #include <iomanip>
+#include <cstdlib>
+
 #include "utils.hpp"
 #include "neuralnetwork.hpp"
 
@@ -119,6 +122,8 @@ namespace utils{
                 << ANSI_COLOR_BRIGHT_GREEN << ANSI_BOLD << setw(3) << setfill(' ') 
                 << (int)((epoch + 1) * 100.0 / epochs) << "%" 
                 << ANSI_BOLD_RESET << ANSI_COLOR_BRIGHT_CYAN << "]" << ANSI_COLOR_RESET << flush;
+
+            cout << endl;
         }else{
             cout << ANSI_COLOR_BRIGHT_CYAN << "\rEpoch " 
                 << ANSI_COLOR_BRIGHT_WHITE << setw(4) << setfill('0') 
@@ -132,4 +137,26 @@ namespace utils{
         }
     }
 
+    void handle_error(const string& message, int exitCode){
+        cerr << ANSI_BOLD << ANSI_COLOR_BRIGHT_RED << "ERROR: " << message << ANSI_BOLD_RESET << ANSI_COLOR_RESET << endl;
+        exit(exitCode);
+    }
+
+
+    void handle_warning(const string& message){
+        cout << ANSI_BOLD << ANSI_COLOR_BRIGHT_YELLOW << "WARNING: " << message << ANSI_BOLD_RESET << ANSI_COLOR_RESET << endl;
+    }
+
+    void handle_success(const string& message){
+        cout << ANSI_BOLD << ANSI_COLOR_BRIGHT_GREEN << "SUCCESS: " << message << ANSI_BOLD_RESET << ANSI_COLOR_RESET << endl;
+    }
+
+    string tab_format(int sizeFormat){
+        string tabs;
+        
+        tabs = string(sizeFormat, '\t');
+
+        return tabs;
+    }
 }
+

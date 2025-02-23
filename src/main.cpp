@@ -8,11 +8,13 @@
 #include "neuralnetwork.hpp"
 #include "config.hpp"
 #include "list.hpp"
+#include "utils.hpp"
 
 using namespace std;
 using namespace neuralnets;
 using namespace ds_list;
 using namespace config;
+using namespace utils;
 
 namespace fs = std::filesystem;
 
@@ -36,8 +38,7 @@ int main(int argc, char *argv[]) {
                 if (argv[i + 1][0] != ' ' && argv[i + 1][0] != '\t' && argv[i + 1][0] != '\0') {
                     NETWORK_FILE_PATH = argv[i + 1];
                 } else {
-                    cerr << "Error: Invalid file path provided after --load." << endl;
-                    return 1;
+                    handle_error("Invalid file path provided after --load.", 1);
                 }
             }
             break;
@@ -45,26 +46,26 @@ int main(int argc, char *argv[]) {
     }
 
     if (load_from_file) {
-        nn = config::load_neural_network(NETWORK_FILE_PATH);
-        if (!nn) {
-            cerr << "Error: Failed to load neural network from file." << endl;
-            return 1;
-        }
-        cout << "Neural network loaded from file: " << NETWORK_FILE_PATH << endl;
+        nn = config::parse_neural_network(NETWORK_FILE_PATH);
+        if (!nn)
+            utils::handle_error("Failed to load neural network from file.", 1);
+        
+
+        utils::handle_success("Neural network loaded from file:" + NETWORK_FILE_PATH);
+
     } else {
         nn = config::initialize(1, numNeuronsPerLayerList, argc, argv);
-        if (!nn) {
-            cerr << "Error: Failed to initialize neural network." << endl;
-            return 1;
-        }
-        cout << "Neural network initialized randomly." << endl;
+        if (!nn)
+            utils::handle_error("Failed to initialize neural network.", 1);
+        
+        utils::handle_success("Neural network initialized randomly.");
 
         bool saving_mode = false;
         config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, saving_mode);
         config::classify(nn, CLASSIFY_FILE_PATH);
 
         config::save_neural_network(nn, NETWORK_FILE_PATH);
-        cout << "Neural network saved to file: " << NETWORK_FILE_PATH << endl;
+        utils::handle_success("Neural network saved to file: " + NETWORK_FILE_PATH);
     }
 
     config::predict(nn, PREDICT_FILE_PATH);

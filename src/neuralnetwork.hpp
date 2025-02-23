@@ -110,9 +110,12 @@ namespace neuralnets {
     void create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron); 
     NEURON* create_neuron(unsigned int id = 0, double bias = 0.0);
     void add_neuron(LAYER* layer, unsigned int id, double bias);
+    NEURON* find_neuron(LAYER* layer, unsigned int id);
     LAYER* create_layer(int num_neurons, unsigned int layer_id);
     void connect_layers(LAYER* prev_layer, LAYER* next_layer);
+    NEURAL_NETWORK* create_neural_network_base(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs);
     NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs);
+    NEURAL_NETWORK* load_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs);
     void feed_forward(NEURAL_NETWORK* nn);
     void loss_function(NEURAL_NETWORK* nn);
     void track_output_layer_errors(NEURAL_NETWORK* nn);

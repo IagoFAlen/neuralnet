@@ -29,47 +29,33 @@ namespace config
         double lambda = 0.001;       // Default lambda
         int epochs = 1000;           // Default epochs
 
-        for (int i = 1; i < argc; i++)
-        {
-            if (strcmp(argv[i], "-l") == 0)
-            {
+        for (int i = 1; i < argc; i++){
+            if (strcmp(argv[i], "-l") == 0){
                 num_layers = atoi(argv[i + 1]);
                 i++;
                 found_l = true;
-            }
-            else if (strcmp(argv[i], "-n") == 0)
-            {
+            } else if (strcmp(argv[i], "-n") == 0){
                 if (num_layers == 0)
-                {
-                    std::cerr << "Error: -n must be preceded by -l" << std::endl;
-                    exit(1);
-                }
-                for (int j = 0; j < num_layers; j++)
-                {
-                    if (i + j + 1 >= argc || !isdigit(*argv[i + j + 1]))
-                    {
-                        std::cerr << "Error: Invalid number of neurons or missing value after -n" << std::endl;
-                        exit(1);
+                    utils::handle_error("-n must be preceded by -l", 1);
+
+                for (int j = 0; j < num_layers; j++){
+                    if (i + j + 1 >= argc || !isdigit(*argv[i + j + 1])){
+                        utils::handle_error("Invalid number of neurons or missing value after -n", 1);
                     }
+
                     ds_list::push(numNeuronsPerLayerList, atoi(argv[i + j + 1]));
                 }
                 i += num_layers;
                 found_n = true;
-            }
-            else if (strcmp(argv[i], "--lr") == 0)
-            {
+            } else if (strcmp(argv[i], "--lr") == 0){
                 learning_rate = atof(argv[i + 1]);
                 i++;
                 found_lr = true;
-            }
-            else if (strcmp(argv[i], "--lambda") == 0)
-            {
+            } else if (strcmp(argv[i], "--lambda") == 0){
                 lambda = atof(argv[i + 1]);
                 i++;
                 found_lambda = true;
-            }
-            else if (strcmp(argv[i], "--epochs") == 0)
-            {
+            } else if (strcmp(argv[i], "--epochs") == 0) {
                 epochs = atoi(argv[i + 1]);
                 i++;
                 found_epochs = true;
@@ -77,51 +63,38 @@ namespace config
         }
 
         if (!found_l || !found_n)
-        {
-            cerr << ANSI_COLOR_BRIGHT_RED << "Error: -l and -n are required arguments." << endl;
-            exit(1);
-        }
+            utils::handle_error("-l and -n are required arguments.", 1);
         if (!found_lr)
-        {
-            cerr << ANSI_COLOR_BRIGHT_YELLOW << "Warning: --lr not specified, using default value: " << learning_rate << endl;
-        }
+            utils::handle_warning("--lr not specified, using default value: " + to_string(learning_rate));        
         if (!found_lambda)
-        {
-            cerr << ANSI_COLOR_BRIGHT_YELLOW << "Warning: --lambda not specified, using default value: " << lambda << endl;
-        }
+            utils::handle_warning("--lambda not specified, using default value: " + to_string(lambda));
         if (!found_epochs)
-        {
-            cerr << ANSI_COLOR_BRIGHT_YELLOW << "Warning: --epochs not specified, using default value: " << epochs << endl;
-        }
+            utils::handle_warning("--epochs not specified, using default value: " + to_string(epochs));
 
         NEURAL_NETWORK *newNeuralNetwork = create_neural_network(id, numNeuronsPerLayerList, learning_rate, lambda, epochs);
         return newNeuralNetwork;
     }
 
-    void initialize_neurons(NEURAL_NETWORK *nn, LIST_INFO *inputList, LIST_INFO *targetList, string line)
-    {
+    void initialize_neurons(NEURAL_NETWORK *nn, LIST_INFO *inputList, LIST_INFO *targetList, string line){
         string tempStringTrain = "";
         double trainData;
 
         stringstream inputString(line);
-        for (int i = 0; i < (nn->layersInfo->list->value + nn->layersInfo->lastBlock->value); i++)
-        {
+        for (int i = 0; i < (nn->layersInfo->list->value + nn->layersInfo->lastBlock->value); i++){
             getline(inputString, tempStringTrain, ',');
             trainData = atof(tempStringTrain.c_str());
             if (i < nn->layersInfo->list->value)
                 push(inputList, trainData);
             else
-            {
                 push(targetList, trainData);
-            }
+            
 
             string tempStringTrain = "";
         }
 
         int inputIndex = 0;
 
-        for (NEURON *currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next)
-        {
+        for (NEURON *currentNeuron = nn->inputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
             double normalizedInput = (get_value_by_index(inputList->list, inputIndex) / 100.00);
             currentNeuron->neuronValue = normalizedInput;
             currentNeuron->activation = currentNeuron->neuronValue;
@@ -129,8 +102,7 @@ namespace config
         }
 
         int targetIndex = 0;
-        for (NEURON *currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next)
-        {
+        for (NEURON *currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
             currentNeuron->target = get_value_by_index(targetList->list, targetIndex);
             targetIndex++;
         }
@@ -141,8 +113,7 @@ namespace config
         empty(targetList);
     }
 
-    void remove_file_train()
-    {
+    void remove_file_train(){
         string current_directory = fs::current_path().string();
 
         fs::path log_path;
@@ -157,8 +128,7 @@ namespace config
             fs::remove(classify_log_path);
     }
 
-    void remove_file_predict()
-    {
+    void remove_file_predict(){
         string current_directory = fs::current_path().string();
 
         fs::path log_path;
@@ -175,22 +145,17 @@ namespace config
 
         fs::path log_path;
 
-        if (type == 'T')
-        {
+        if (type == 'T'){
             log_path = fs::path(current_directory) / "visualize" / "loss_function.log";
         }
-        else
-        {
+        else{
             log_path = fs::path(current_directory) / "visualize" / "classify.log";
         }
 
         ofstream file(log_path, ios::app);
 
         if (!file.is_open())
-        {
-            perror("Error opening log file");
-            return;
-        }
+            handle_error("Could not open the file.", 1);
 
         file << lossFunction << "\n";
 
@@ -208,10 +173,8 @@ namespace config
         ofstream file(log_path, ios::app);
 
         if (!file.is_open())
-        {
-            perror("Error opening log file");
-            return;
-        }
+            handle_error("Could not open the file.", 1);
+
 
         file << targetIndex << "," << predictionIndex << "\n";
 
@@ -228,10 +191,8 @@ namespace config
             remove_file_train();
 
         if (!trainFile.is_open())
-        {
-            cout << "Error opening file: " << filePath << endl;
-            return;
-        }
+            handle_error("Could not open the file.", 1);
+
 
         string line = "";
         while (getline(trainFile, line))
@@ -275,15 +236,11 @@ namespace config
             remove_file_train();
 
         if (!trainFile.is_open())
-        {
-            cout << "Error opening file: " << filePath << endl;
-            return;
-        }
-
+            handle_error("Could not open the file.", 1);
+            
         string line = "";
 
-        while (getline(trainFile, line))
-        {
+        while (getline(trainFile, line)){
             file_list::push(lines, line);
             line = "";
         }
@@ -291,13 +248,11 @@ namespace config
         trainFile.close();
 
         int index = 0;
-        for (int epoch = 0; epoch < nn->epochs; ++epoch)
-        {
+        for (int epoch = 0; epoch < nn->epochs; ++epoch){
             LIST_INFO *inputList = new LIST_INFO();
             LIST_INFO *targetList = new LIST_INFO();
             nn->learningRate *= 0.99;
-            for (int i = 0; i < lines->size; i++)
-            {
+            for (int i = 0; i < lines->size; i++){
                 string currentLine = file_list::get_line_by_index(lines->file_list, i);
                 initialize_neurons(nn, inputList, targetList, currentLine);
                 neuralnets::feed_forward(nn);
@@ -315,17 +270,13 @@ namespace config
         FILE_LIST_INFO *lines = new FILE_LIST_INFO();
 
         ifstream classifyFile(filePath);
-
+        
         if (!classifyFile.is_open())
-        {
-            cout << "Error opening file: " << filePath << endl;
-            return;
-        }
+            handle_error("Could not open the file.", 1);
 
         string line = "";
 
-        while (getline(classifyFile, line))
-        {
+        while (getline(classifyFile, line)){
             file_list::push(lines, line);
             line = "";
         }
@@ -335,8 +286,7 @@ namespace config
         LIST_INFO *inputList = new LIST_INFO();
         LIST_INFO *targetList = new LIST_INFO();
 
-        for (int i = 0; i < lines->size; i++)
-        {
+        for (int i = 0; i < lines->size; i++){
             string currentLine = file_list::get_line_by_index(lines->file_list, i);
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
@@ -346,23 +296,18 @@ namespace config
         }
     }
 
-    void predict(NEURAL_NETWORK *nn, string filePath)
-    {
+    void predict(NEURAL_NETWORK *nn, string filePath){
         FILE_LIST_INFO *lines = new FILE_LIST_INFO();
 
         ifstream classifyFile(filePath);
 
         remove_file_predict();
         if (!classifyFile.is_open())
-        {
-            cout << "Error opening file: " << filePath << endl;
-            return;
-        }
+            handle_error("Could not open the file.", 1);
 
         string line = "";
 
-        while (getline(classifyFile, line))
-        {
+        while (getline(classifyFile, line)){
             file_list::push(lines, line);
             line = "";
         }
@@ -372,8 +317,7 @@ namespace config
         LIST_INFO *inputList = new LIST_INFO();
         LIST_INFO *targetList = new LIST_INFO();
 
-        for (int i = 0; i < lines->size; i++)
-        {
+        for (int i = 0; i < lines->size; i++){
             string currentLine = file_list::get_line_by_index(lines->file_list, i);
             initialize_neurons(nn, inputList, targetList, currentLine);
             neuralnets::feed_forward(nn);
@@ -382,123 +326,317 @@ namespace config
         }
     }
 
-    void save_neural_network(NEURAL_NETWORK *nn, const string &filePath)
-    {
+    void save_neural_network(NEURAL_NETWORK *nn, const string &filePath){
         ofstream file(filePath);
         if (!file.is_open())
-        {
-            cerr << "Error: Unable to open file for saving neural network." << endl;
-            return;
-        }
+            utils::handle_error("Unable to open file for saving neural network.", 1);
 
-        // Save basic network information
-        file << nn->id << " " << nn->learningRate << " " << nn->lambda << " " << nn->epochs << endl;
+        int NEURAL_NETWORK_FORMAT = 1;
+        int LAYER_FORMAT = 2;
+        int NEURON_FORMAT = 3;
+        int CONNECTION_FORMAT = 4;
 
-        // Save layer information
-        for (LAYER *layer = nn->inputLayer; layer != nullptr; layer = layer->next)
-        {
-            file << layer->id << " " << layer->numNeurons << endl;
+        // SAVE NEURAL NETWORK INITIALIZATION BASIC INFO
+        file << "NEURAL_NETWORK " << nn->id << endl;
+        file << tab_format(NEURAL_NETWORK_FORMAT) << "LAYERS_QUANTITY: " << nn->layersInfo->size << endl;
 
-            // Save neuron information
-            for (NEURON *neuron = layer->neurons; neuron != nullptr; neuron = neuron->next)
-            {
-                file << neuron->id << " " << neuron->bias << endl;
+        for(LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next)
+            file << tab_format(NEURAL_NETWORK_FORMAT) << "LAYER " << currentLayer->id << " NEURONS_QUANTITY " << currentLayer->numNeurons << endl;
 
-                // Save connection information
-                for (CONNECTION *conn = neuron->connections; conn != nullptr; conn = conn->next)
-                {
-                    file << conn->id << " " << conn->weight << " " << conn->afterwardNeuron->id << endl;
+        file << tab_format(NEURAL_NETWORK_FORMAT) << "LEARNING_RATE " << nn->learningRate << endl;
+        file << tab_format(NEURAL_NETWORK_FORMAT) << "LAMBDA " << nn->lambda << endl;
+        file << tab_format(NEURAL_NETWORK_FORMAT) << "EPOCHS " << nn->epochs << endl;
+        file << endl;
+        for(LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next){
+            file << tab_format(NEURAL_NETWORK_FORMAT) << "LAYER " << currentLayer->id << endl;
+            
+            for(NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next){
+                file << tab_format(LAYER_FORMAT) << "NEURON " << currentNeuron->id << endl;
+                file << tab_format(NEURON_FORMAT) << "NEURON_BIAS: " << currentNeuron->bias << endl;
+                file << tab_format(NEURON_FORMAT) << "NEURON_DELTA_LOSS: " << currentNeuron->deltaLoss << endl;
+
+                for(CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next){
+                    file << tab_format(NEURON_FORMAT) << "CONNECTION " << currentConnection->id << endl;
+                    file << tab_format(CONNECTION_FORMAT) << "CONNECTION_WEIGHT " << currentConnection->weight << endl;            
                 }
+
+                for(CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != NULL; currentConnection = currentConnection->nextAsPrevious){
+                    file << tab_format(NEURON_FORMAT) << "PREVIOUS_CONNECTION " << currentConnection->id << endl;
+                    file << tab_format(CONNECTION_FORMAT) << "PREVIOUS_CONNECTION_WEIGHT " << currentConnection->weight << endl;            
+                }
+
             }
         }
 
         file.close();
     }
 
-    NEURAL_NETWORK *load_neural_network(const string &filePath)
-    {
+    NEURAL_NETWORK* parse_neural_network(const string &filePath) {
         ifstream file(filePath);
+
         if (!file.is_open())
-        {
-            cerr << "Error: Unable to open file for loading neural network." << endl;
-            return nullptr;
-        }
+            utils::handle_error("Unable to open file for loading neural network.", 1);
 
-        NEURAL_NETWORK *nn = new NEURAL_NETWORK();
-        unsigned int id;
-        double learningRate, lambda;
-        int epochs;
+        // Define an enum to map string keys to integer values
+        enum Key {
+            NEURAL_NETWORK_KEY,
+            LAYERS_QUANTITY_KEY,
+            LAYER_KEY,
+            LEARNING_RATE_KEY,
+            LAMBDA_KEY,
+            EPOCHS_KEY,
+            NEURON_KEY,
+            NEURON_BIAS_KEY,
+            NEURON_DELTA_LOSS_KEY,
+            CONNECTION_KEY,
+            CONNECTION_WEIGHT_KEY,
+            PREVIOUS_CONNECTION_KEY,
+            PREVIOUS_CONNECTION_WEIGHT_KEY,
+            UNKNOWN_KEY
+        };
 
-        // Load basic network information
-        file >> id >> learningRate >> lambda >> epochs;
-        nn->id = id;
-        nn->learningRate = learningRate;
-        nn->lambda = lambda;
-        nn->epochs = epochs;
+        // Function to convert string keys to enum values
+        auto getKey = [](const string& key) -> Key {
+            if (key == "NEURAL_NETWORK") return NEURAL_NETWORK_KEY;
+            if (key == "LAYERS_QUANTITY:") return LAYERS_QUANTITY_KEY;
+            if (key == "LAYER") return LAYER_KEY;
+            if (key == "LEARNING_RATE") return LEARNING_RATE_KEY;
+            if (key == "LAMBDA") return LAMBDA_KEY;
+            if (key == "EPOCHS") return EPOCHS_KEY;
+            if (key == "NEURON") return NEURON_KEY;
+            if (key == "NEURON_BIAS:") return NEURON_BIAS_KEY;
+            if (key == "NEURON_DELTA_LOSS:") return NEURON_DELTA_LOSS_KEY;
+            if (key == "CONNECTION") return CONNECTION_KEY;
+            if (key == "CONNECTION_WEIGHT") return CONNECTION_WEIGHT_KEY;
+            if (key == "PREVIOUS_CONNECTION") return PREVIOUS_CONNECTION_KEY;
+            if (key == "PREVIOUS_CONNECTION_WEIGHT") return PREVIOUS_CONNECTION_WEIGHT_KEY;
+            return UNKNOWN_KEY;
+        };
 
-        // Load layer information
-        LAYER *prevLayer = nullptr;
-        while (file.peek() != EOF)
-        {
-            unsigned int layerId;
-            int numNeurons;
-            file >> layerId >> numNeurons;
+        // Variables to store parsed data
+        unsigned int id = 0;
+        double learningRate = 0.0;
+        double lambda = 0.0;
+        int epochs = 0;
+        bool finishedInitializationFlag = false;
 
-            LAYER *layer = create_layer(numNeurons, layerId);
-            if (prevLayer != nullptr)
-            {
-                prevLayer->next = layer;
-                layer->previous = prevLayer;
-            }
-            else
-            {
-                nn->inputLayer = layer;
-            }
-            prevLayer = layer;
+        LIST_INFO* layerSizesList = new LIST_INFO();
+        layerSizesList->size = 0;
 
-            // Load neuron information
-            for (int i = 0; i < numNeurons; ++i)
-            {
-                unsigned int neuronId;
-                double bias;
-                file >> neuronId >> bias;
+        string line;
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string key;
+            ss >> key;
 
-                NEURON *neuron = create_neuron(neuronId, bias);
-                if (layer->neurons == nullptr)
-                {
-                    layer->neurons = neuron;
-                    layer->lastNeuron = neuron;
+            // Get the enum value for the key
+            Key currentKey = getKey(key);
+
+            switch (currentKey) {
+                case NEURAL_NETWORK_KEY: {
+                    ss >> id;
+                    break;
                 }
-                else
-                {
-                    layer->lastNeuron->next = neuron;
-                    layer->lastNeuron = neuron;
+                case LAYERS_QUANTITY_KEY: {
+                    int layersQuantity;
+                    ss >> layersQuantity;
+                    layerSizesList->size = layersQuantity;
+                    break;
                 }
-
-                // Load connection information
-                while (file.peek() != '\n' && file.peek() != EOF)
-                {
-                    unsigned int connId;
-                    double weight;
-                    unsigned int destNeuronId;
-                    file >> connId >> weight >> destNeuronId;
-
-                    NEURON *destNeuron = layer->next->neurons;
-                    while (destNeuron != nullptr && destNeuron->id != destNeuronId)
-                    {
-                        destNeuron = destNeuron->next;
+                case LAYER_KEY: {
+                    unsigned int layerId;
+                    
+                    string temp;
+                    int neuronsQuantity;
+                    
+                    ss >> layerId >> temp >> neuronsQuantity;
+                    
+                    if (temp != "NEURONS_QUANTITY") {
+                        utils::handle_error("Formato inválido na linha da camada", 1);
                     }
 
-                    if (destNeuron != nullptr)
-                    {
-                        create_connection(connId, neuron, weight, destNeuron);
-                    }
+                    ds_list::push(layerSizesList, neuronsQuantity);
+                    break;
+                }
+                case LEARNING_RATE_KEY: {
+                    ss >> learningRate;
+                    break;
+                }
+                case LAMBDA_KEY: {
+                    ss >> lambda;
+                    break;
+                }
+                case EPOCHS_KEY: {
+                    ss >> epochs;
+                    finishedInitializationFlag = true;
+                    break;
+                }
+                default: {
+                    break;
                 }
             }
+
+            if (finishedInitializationFlag)
+                break;
         }
 
-        nn->outputLayer = prevLayer;
         file.close();
+
+        ds_list::show(layerSizesList);
+        // Use load_neural_network to initialize the neural network structure
+        NEURAL_NETWORK* nn = load_neural_network(id, layerSizesList, learningRate, lambda, epochs);
+
+        print_nn_io(nn);
+
+        cout << endl;
+
+        utils::handle_success("Initialization loaded");
+
+        // Now, reopen the file to parse and update the weights, biases, and other parameters
+        file.open(filePath);
+        if (!file.is_open())
+            utils::handle_error("Unable to reopen file for loading neural network parameters.", 1);
+
+        LAYER* currentLayer = nn->inputLayer; // Reset currentLayer to inputLayer
+        NEURON* currentNeuron = NULL;
+        CONNECTION* currentConnection = NULL;
+
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string key;
+            ss >> key;
+
+            Key currentKey = getKey(key);
+
+            switch (currentKey) {
+                case LAYER_KEY: {
+                    unsigned int layerId;
+                    int neuronsQuantity;
+                    ss >> layerId >> neuronsQuantity;
+
+                    // Reset currentLayer to inputLayer before searching
+                    currentLayer = nn->inputLayer;
+
+                    // Move to the correct layer
+                    while (currentLayer != NULL && currentLayer->id != layerId) {
+                        currentLayer = currentLayer->next;
+                    }
+                    if (currentLayer == NULL) {
+                        utils::handle_error("Layer " + to_string(layerId) + " not found.", 1);
+                    }
+                    utils::handle_success("LAYER " + to_string(layerId) + " loaded");
+                    break;
+                }
+                case NEURON_KEY: {
+                    unsigned int neuronId;
+                    ss >> neuronId;
+
+                    // Find the neuron in the current layer
+                    if (currentLayer != NULL) {
+                        currentNeuron = currentLayer->neurons;
+                        while (currentNeuron != NULL && currentNeuron->id != neuronId) {
+                            currentNeuron = currentNeuron->next;
+                        }
+                        if (currentNeuron == NULL) {
+                            utils::handle_error("Neuron " + to_string(neuronId) + " not found in layer " + to_string(currentLayer->id), 1);
+                        }
+                        utils::handle_success("NEURON " + to_string(neuronId) + " loaded");
+                    } else {
+                        utils::handle_error("No current layer to find neuron.", 1);
+                    }
+                    break;
+                }
+                case NEURON_BIAS_KEY: {
+                    double bias;
+                    ss >> bias;
+                    if (currentNeuron != NULL) {
+                        currentNeuron->bias = bias;
+                        utils::handle_success("NEURON BIAS " + to_string(bias) + " loaded");
+                    } else {
+                        utils::handle_error("No current neuron to set bias.", 1);
+                    }
+                    break;
+                }
+                case NEURON_DELTA_LOSS_KEY: {
+                    double deltaLoss;
+                    ss >> deltaLoss;
+                    if (currentNeuron != NULL) {
+                        currentNeuron->deltaLoss = deltaLoss;
+                        utils::handle_success("NEURON DELTA LOSS " + to_string(deltaLoss) + " loaded");
+                    } else {
+                        utils::handle_error("No current neuron to set delta loss.", 1);
+                    }
+                    break;
+                }
+                case CONNECTION_KEY: {
+                    unsigned int connectionId;
+                    ss >> connectionId;
+
+                    // Find the connection in the current neuron
+                    if (currentNeuron != NULL) {
+                        currentConnection = currentNeuron->connections;
+                        while (currentConnection != NULL && currentConnection->id != connectionId) {
+                            currentConnection = currentConnection->next;
+                        }
+                        if (currentConnection == NULL) {
+                            utils::handle_error("Connection " + to_string(connectionId) + " not found in neuron " + to_string(currentNeuron->id), 1);
+                        }
+                        utils::handle_success("CONNECTION " + to_string(connectionId) + " loaded");
+                    } else {
+                        utils::handle_error("No current neuron to find connection.", 1);
+                    }
+                    break;
+                }
+                case CONNECTION_WEIGHT_KEY: {
+                    double weight;
+                    ss >> weight;
+                    if (currentConnection != NULL) {
+                        currentConnection->weight = weight;
+                        utils::handle_success("CONNECTION WEIGHT " + to_string(weight) + " loaded");
+                    } else {
+                        utils::handle_error("No current connection to set weight.", 1);
+                    }
+                    break;
+                }
+                case PREVIOUS_CONNECTION_KEY: {
+                    unsigned int connectionId;
+                    ss >> connectionId;
+
+                    // Find the previous connection in the current neuron
+                    if (currentNeuron != NULL) {
+                        currentConnection = currentNeuron->previousConnections;
+                        while (currentConnection != NULL && currentConnection->id != connectionId) {
+                            currentConnection = currentConnection->nextAsPrevious;
+                        }
+                        if (currentConnection == NULL) {
+                            utils::handle_error("Previous connection " + to_string(connectionId) + " not found in neuron " + to_string(currentNeuron->id), 1);
+                        }
+                        utils::handle_success("PREVIOUS CONNECTION " + to_string(connectionId) + " loaded");
+                    } else {
+                        utils::handle_error("No current neuron to find previous connection.", 1);
+                    }
+                    break;
+                }
+                case PREVIOUS_CONNECTION_WEIGHT_KEY: {
+                    double weight;
+                    ss >> weight;
+                    if (currentConnection != NULL) {
+                        currentConnection->weight = weight;
+                        utils::handle_success("PREVIOUS CONNECTION WEIGHT " + to_string(weight) + " loaded");
+                    } else {
+                        utils::handle_error("No current connection to set weight.", 1);
+                    }
+                    break;
+                }
+                default: {
+                    // Handle unknown keys (if needed)
+                    break;
+                }
+            }
+        }
+
+        file.close();
+
         return nn;
     }
 }

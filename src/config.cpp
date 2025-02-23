@@ -336,6 +336,7 @@ namespace config
         int NEURON_FORMAT = 3;
         int CONNECTION_FORMAT = 4;
 
+        cout << "CHANGE PREVIOUS CONNECTIONS IDS" << endl;
         // SAVE NEURAL NETWORK INITIALIZATION BASIC INFO
         file << "NEURAL_NETWORK " << nn->id << endl;
         file << tab_format(NEURAL_NETWORK_FORMAT) << "LAYERS_QUANTITY: " << nn->layersInfo->size << endl;
@@ -445,7 +446,7 @@ namespace config
                 }
                 case LAYER_KEY: {
                     unsigned int layerId;
-                    
+
                     string temp;
                     int neuronsQuantity;
                     

@@ -12,4 +12,5 @@ namespace utils {
     void handle_warning(const string& message);
     void handle_success(const string& message);
     string tab_format(int sizeFormat);
+    void clear_console();
 }

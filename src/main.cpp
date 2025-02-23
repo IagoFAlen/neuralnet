@@ -50,11 +50,11 @@ int main(int argc, char *argv[]) {
         if (!nn)
             utils::handle_error("Failed to load neural network from file.", 1);
         
-
         utils::handle_success("Neural network loaded from file:" + NETWORK_FILE_PATH);
 
     } else {
         nn = config::initialize(1, numNeuronsPerLayerList, argc, argv);
+        utils::clear_console();
         if (!nn)
             utils::handle_error("Failed to initialize neural network.", 1);
         
@@ -65,6 +65,8 @@ int main(int argc, char *argv[]) {
         config::classify(nn, CLASSIFY_FILE_PATH);
 
         config::save_neural_network(nn, NETWORK_FILE_PATH);
+        //utils::print_nn_io(nn);
+        //utils::print_nn_io_previous(nn);
         utils::handle_success("Neural network saved to file: " + NETWORK_FILE_PATH);
     }
 

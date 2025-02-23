@@ -15,10 +15,10 @@ using namespace utils;
 
 namespace neuralnets {
     static int index = 0;
-    void create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron){
+    void create_connection(NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron){
         CONNECTION* newConnection = new CONNECTION();
 
-        newConnection->id = id;
+        newConnection->id = afterwardNeuron->id;
         newConnection->backwardNeuron = backwardNeuron;
         newConnection->weight = weight;
         newConnection->afterwardNeuron = afterwardNeuron;
@@ -168,24 +168,9 @@ namespace neuralnets {
         double xavierScale = sqrt(2.0 / (currentLayer->numNeurons + next_layer->numNeurons));
 
         for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
-            unsigned int conn_id = 0; // Reset ID for each source neuron
             for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
                 double weight = math::normal_distribution(0.0, xavierScale);
-                create_connection(conn_id++, src, weight, dest);
-            }
-        }
-    }
-
-    void connect_loaded_layers(LAYER* currentLayer, LAYER* next_layer) {
-        if (!currentLayer || !next_layer) return;
-
-
-        double weight = 0.0;
-
-        for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
-            unsigned int conn_id = 0; // Reset ID for each source neuron
-            for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
-                create_connection(conn_id++, src, weight, dest);
+                create_connection(src, weight, dest);
             }
         }
     }
@@ -204,10 +189,6 @@ namespace neuralnets {
     NEURAL_NETWORK* load_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
         NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs);
         
-        for (LAYER* current_layer = nn->inputLayer; current_layer != nullptr && current_layer->next != nullptr; current_layer = current_layer->next) {
-            connect_loaded_layers(current_layer, current_layer->next);
-        }
-
         return nn;
     }
 

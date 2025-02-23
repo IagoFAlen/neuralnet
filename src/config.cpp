@@ -336,7 +336,6 @@ namespace config
         int NEURON_FORMAT = 3;
         int CONNECTION_FORMAT = 4;
 
-        cout << "CHANGE PREVIOUS CONNECTIONS IDS" << endl;
         // SAVE NEURAL NETWORK INITIALIZATION BASIC INFO
         file << "NEURAL_NETWORK " << nn->id << endl;
         file << tab_format(NEURAL_NETWORK_FORMAT) << "LAYERS_QUANTITY: " << nn->layersInfo->size << endl;
@@ -357,14 +356,15 @@ namespace config
                 file << tab_format(NEURON_FORMAT) << "NEURON_DELTA_LOSS: " << currentNeuron->deltaLoss << endl;
 
                 for(CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next){
-                    file << tab_format(NEURON_FORMAT) << "CONNECTION " << currentConnection->id << endl;
-                    file << tab_format(CONNECTION_FORMAT) << "CONNECTION_WEIGHT " << currentConnection->weight << endl;            
+                    file << tab_format(CONNECTION_FORMAT) << "CONNECTION " << currentConnection->backwardNeuron->id << " " << currentConnection->weight << " " << currentConnection->afterwardNeuron->id << endl;
                 }
 
+                /*
                 for(CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != NULL; currentConnection = currentConnection->nextAsPrevious){
                     file << tab_format(NEURON_FORMAT) << "PREVIOUS_CONNECTION " << currentConnection->id << endl;
                     file << tab_format(CONNECTION_FORMAT) << "PREVIOUS_CONNECTION_WEIGHT " << currentConnection->weight << endl;            
                 }
+                */
 
             }
         }
@@ -390,9 +390,6 @@ namespace config
             NEURON_BIAS_KEY,
             NEURON_DELTA_LOSS_KEY,
             CONNECTION_KEY,
-            CONNECTION_WEIGHT_KEY,
-            PREVIOUS_CONNECTION_KEY,
-            PREVIOUS_CONNECTION_WEIGHT_KEY,
             UNKNOWN_KEY
         };
 
@@ -408,9 +405,6 @@ namespace config
             if (key == "NEURON_BIAS:") return NEURON_BIAS_KEY;
             if (key == "NEURON_DELTA_LOSS:") return NEURON_DELTA_LOSS_KEY;
             if (key == "CONNECTION") return CONNECTION_KEY;
-            if (key == "CONNECTION_WEIGHT") return CONNECTION_WEIGHT_KEY;
-            if (key == "PREVIOUS_CONNECTION") return PREVIOUS_CONNECTION_KEY;
-            if (key == "PREVIOUS_CONNECTION_WEIGHT") return PREVIOUS_CONNECTION_WEIGHT_KEY;
             return UNKNOWN_KEY;
         };
 
@@ -570,63 +564,27 @@ namespace config
                     break;
                 }
                 case CONNECTION_KEY: {
-                    unsigned int connectionId;
-                    ss >> connectionId;
-
-                    // Find the connection in the current neuron
-                    if (currentNeuron != NULL) {
-                        currentConnection = currentNeuron->connections;
-                        while (currentConnection != NULL && currentConnection->id != connectionId) {
-                            currentConnection = currentConnection->next;
-                        }
-                        if (currentConnection == NULL) {
-                            utils::handle_error("Connection " + to_string(connectionId) + " not found in neuron " + to_string(currentNeuron->id), 1);
-                        }
-                        utils::handle_success("CONNECTION " + to_string(connectionId) + " loaded");
-                    } else {
-                        utils::handle_error("No current neuron to find connection.", 1);
-                    }
-                    break;
-                }
-                case CONNECTION_WEIGHT_KEY: {
+                    unsigned int srcNeuronId, destNeuronId;
                     double weight;
-                    ss >> weight;
-                    if (currentConnection != NULL) {
-                        currentConnection->weight = weight;
-                        utils::handle_success("CONNECTION WEIGHT " + to_string(weight) + " loaded");
-                    } else {
-                        utils::handle_error("No current connection to set weight.", 1);
-                    }
-                    break;
-                }
-                case PREVIOUS_CONNECTION_KEY: {
-                    unsigned int connectionId;
-                    ss >> connectionId;
+                    
+                    ss >> srcNeuronId >> weight >> destNeuronId;
 
-                    // Find the previous connection in the current neuron
-                    if (currentNeuron != NULL) {
-                        currentConnection = currentNeuron->previousConnections;
-                        while (currentConnection != NULL && currentConnection->id != connectionId) {
-                            currentConnection = currentConnection->nextAsPrevious;
-                        }
-                        if (currentConnection == NULL) {
-                            utils::handle_error("Previous connection " + to_string(connectionId) + " not found in neuron " + to_string(currentNeuron->id), 1);
-                        }
-                        utils::handle_success("PREVIOUS CONNECTION " + to_string(connectionId) + " loaded");
-                    } else {
-                        utils::handle_error("No current neuron to find previous connection.", 1);
+                    if (currentLayer == nullptr) {
+                        utils::handle_error("Cannot find source neuron: No active layer context.", 1);
                     }
-                    break;
-                }
-                case PREVIOUS_CONNECTION_WEIGHT_KEY: {
-                    double weight;
-                    ss >> weight;
-                    if (currentConnection != NULL) {
-                        currentConnection->weight = weight;
-                        utils::handle_success("PREVIOUS CONNECTION WEIGHT " + to_string(weight) + " loaded");
-                    } else {
-                        utils::handle_error("No current connection to set weight.", 1);
+
+                    // Find source and destination neurons
+                    NEURON* srcNeuron = find_neuron(currentLayer, srcNeuronId);
+                    NEURON* destNeuron = find_neuron(currentLayer->next, destNeuronId);
+
+                    if (!srcNeuron || !destNeuron) {
+                        utils::handle_error("Error: Could not find neurons for connection " + to_string(srcNeuronId) + " -> " + to_string(destNeuronId), 1);
                     }
+
+                    // Create the connection with the parsed weight
+                    neuralnets::create_connection(srcNeuron, weight, destNeuron);
+
+                    utils::handle_success("CONNECTION " + to_string(srcNeuronId) + " -> " + to_string(destNeuronId) + " with weight " + to_string(weight) + " loaded.");
                     break;
                 }
                 default: {

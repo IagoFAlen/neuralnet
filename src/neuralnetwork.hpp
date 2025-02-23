@@ -107,7 +107,7 @@ namespace neuralnets {
         
     } NEURAL_NETWORK;
 
-    void create_connection(unsigned int id, NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron); 
+    void create_connection(NEURON* backwardNeuron, double weight, NEURON* afterwardNeuron); 
     NEURON* create_neuron(unsigned int id = 0, double bias = 0.0);
     void add_neuron(LAYER* layer, unsigned int id, double bias);
     NEURON* find_neuron(LAYER* layer, unsigned int id);

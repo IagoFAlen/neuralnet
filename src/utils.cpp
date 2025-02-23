@@ -158,5 +158,9 @@ namespace utils{
 
         return tabs;
     }
+
+    void clear_console(){
+        cout << "\033[2J\033[1;1H";
+    }
 }
 

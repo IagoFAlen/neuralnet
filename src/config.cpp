@@ -327,6 +327,16 @@ namespace config
     }
 
     void save_neural_network(NEURAL_NETWORK *nn, const string &filePath){
+        fs::path directoryPath = fs::path(filePath).parent_path();
+
+        if (!fs::exists(directoryPath)) {
+            try {
+                fs::create_directories(directoryPath);
+            } catch (const std::exception &e) {
+                utils::handle_error("Failed to create directory: " + directoryPath.string() + " (" + e.what() + ")", 1);
+            }
+        }
+        
         ofstream file(filePath);
         if (!file.is_open())
             utils::handle_error("Unable to open file for saving neural network.", 1);

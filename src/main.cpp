@@ -4,19 +4,24 @@
 #include <ctime>
 #include <cstdio>
 #include <filesystem>
+#include <pthread.h>
 
 #include "neuralnetwork.hpp"
 #include "config.hpp"
 #include "list.hpp"
 #include "utils.hpp"
+#include "render.hpp"
+#include "globals.hpp"
 
 using namespace std;
 using namespace neuralnets;
 using namespace ds_list;
 using namespace config;
 using namespace utils;
+using namespace render;
 
 namespace fs = std::filesystem;
+pthread_mutex_t nn_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
@@ -61,9 +66,17 @@ int main(int argc, char *argv[]) {
         utils::handle_success("Neural network initialized randomly.");
 
         bool saving_mode = false;
-        config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, saving_mode);
-        config::classify(nn, CLASSIFY_FILE_PATH);
+        if(!nn->render){
+            config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, saving_mode);
+        } else {
+            pthread_t render_thread_id;
+            pthread_create(&render_thread_id, NULL, render::render_thread, nn);
 
+            config::train_with_epochs_randomly(nn, TRAIN_FILE_PATH, saving_mode);
+            
+            pthread_join(render_thread_id, NULL);
+        }
+        config::classify(nn, CLASSIFY_FILE_PATH);
         config::save_neural_network(nn, NETWORK_FILE_PATH);
         //utils::print_nn_io(nn);
         //utils::print_nn_io_previous(nn);

@@ -7,6 +7,7 @@
 #include "config.hpp"
 #include "neuralnetwork.hpp"
 #include "utils.hpp"
+#include "globals.hpp"
 
 using namespace std;
 using namespace config;
@@ -75,7 +76,7 @@ namespace config
         if (!found_epochs)
             utils::handle_warning("--epochs not specified, using default value: " + to_string(epochs));
 
-        NEURAL_NETWORK *newNeuralNetwork = create_neural_network(id, numNeuronsPerLayerList, learning_rate, lambda, epochs);
+        NEURAL_NETWORK *newNeuralNetwork = create_neural_network(id, numNeuronsPerLayerList, learning_rate, lambda, epochs, render);
         return newNeuralNetwork;
     }
 
@@ -219,10 +220,20 @@ namespace config
                 int randomIndex = rand() % lines->size; // Randomly select a sample
                 string currentLine = file_list::get_line_by_index(lines->file_list, randomIndex);
 
-                initialize_neurons(nn, inputList, targetList, currentLine);
-                neuralnets::feed_forward(nn);
-                neuralnets::backpropagation(nn);
-                save_loss_function(nn->lossFunction, 'T');
+                if(!nn->render){
+                    initialize_neurons(nn, inputList, targetList, currentLine);
+                    neuralnets::feed_forward(nn);
+                    neuralnets::backpropagation(nn);
+                    save_loss_function(nn->lossFunction, 'T');
+                } else {
+                    pthread_mutex_lock(&nn_mutex); // Lock mutex before updating the network
+                    initialize_neurons(nn, inputList, targetList, currentLine);
+                    neuralnets::feed_forward(nn);
+                    neuralnets::backpropagation(nn);
+                    save_loss_function(nn->lossFunction, 'T');
+                    pthread_mutex_unlock(&nn_mutex); // Unlock mutex after updating the network
+                }
+
 
                 print_train(index, nn->epochs * lines->size);
                 index++;
@@ -493,7 +504,7 @@ namespace config
 
         ds_list::show(layerSizesList);
         // Use load_neural_network to initialize the neural network structure
-        NEURAL_NETWORK* nn = load_neural_network(id, layerSizesList, learningRate, lambda, epochs);
+        NEURAL_NETWORK* nn = load_neural_network(id, layerSizesList, learningRate, lambda, epochs, false);
 
         print_nn_io(nn);
 

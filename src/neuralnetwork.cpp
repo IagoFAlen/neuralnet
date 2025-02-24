@@ -187,8 +187,8 @@ namespace neuralnets {
     }
 
 
-    NEURAL_NETWORK* load_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
-        NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs);
+    NEURAL_NETWORK* load_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs, bool render) {
+        NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs, render);
         
         return nn;
     }

@@ -94,6 +94,7 @@ namespace neuralnets {
         int epochs;                     // Number of epochs
         double lossFunction;            // Cross Entropy Loss Function
         ds_list::LIST_INFO* layersInfo; // Contains the number of layers and number of neurons on each layer
+        bool render;
 
         NeuralNetwork(){
             id = 0;
@@ -103,6 +104,7 @@ namespace neuralnets {
             lambda = 0;
             epochs = 0;
             lossFunction = 0;
+            render = false;
         }
         
     } NEURAL_NETWORK;

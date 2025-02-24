@@ -28,6 +28,7 @@ namespace config
         double learning_rate = 0.01; // Default learning rate
         double lambda = 0.001;       // Default lambda
         int epochs = 1000;           // Default epochs
+        bool render = false;
 
         for (int i = 1; i < argc; i++){
             if (strcmp(argv[i], "-l") == 0){
@@ -59,7 +60,10 @@ namespace config
                 epochs = atoi(argv[i + 1]);
                 i++;
                 found_epochs = true;
-            }
+            } else if (strcmp(argv[i], "--render") == 0) {
+                render = true;
+                i++;
+            } 
         }
 
         if (!found_l || !found_n)

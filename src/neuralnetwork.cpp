@@ -126,13 +126,14 @@ namespace neuralnets {
         return new_layer;
     }
 
-    NEURAL_NETWORK* create_neural_network_base(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs){
+    NEURAL_NETWORK* create_neural_network_base(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs, bool render){
         NEURAL_NETWORK* nn = new NEURAL_NETWORK();
         nn->id = id;
         nn->learningRate = learning_rate;
         nn->lambda = lambda;
         nn->epochs = epochs;
         nn->layersInfo = layer_sizes_list;
+        nn->render = render;
 
         if (nn->layersInfo->size == 0) return nn;
 
@@ -175,8 +176,8 @@ namespace neuralnets {
         }
     }
 
-    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs) {
-        NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs);
+    NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs, bool render) {
+        NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs, render);
         
         for (LAYER* current_layer = nn->inputLayer; current_layer != nullptr && current_layer->next != nullptr; current_layer = current_layer->next) {
             connect_layers(current_layer, current_layer->next);

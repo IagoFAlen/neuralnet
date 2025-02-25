@@ -106,42 +106,58 @@ namespace render {
 
     void render_network(NEURAL_NETWORK* nn) {
         glClear(GL_COLOR_BUFFER_BIT);
-
+    
         int windowWidth, windowHeight;
         glfwGetFramebufferSize(glfwGetCurrentContext(), &windowWidth, &windowHeight);
-
-        // Render the neural network
-        float layerSpacing = (float)windowWidth / ((float)nn->layersInfo->size + 1.0f);
-        float neuronSpacing = 40.0f;
-
+    
+        // Calculate maximum number of neurons across all layers
+        int maxNeurons = 0;
+        for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
+            maxNeurons = std::max(maxNeurons, currentLayer->numNeurons);
+        }
+    
+        // Calculate dynamic layer spacing
+        float layerSpacing = windowWidth / (float)(nn->layersInfo->size + 1);
+        float spacingFactor = .5f;
+        layerSpacing *= spacingFactor;
+        float neuronSpacingFactor = std::max(1.0f, (float)maxNeurons / 1.0f);
+        layerSpacing = layerSpacing * (1 + (neuronSpacingFactor / 4.0f));
+    
+        // Calculate neuron size based on layer spacing
+        float neuronSize = 12.0f + (layerSpacing / 30.0f);
+        float baseNeuronSpacing = 100.0f;
+    
         glPushMatrix();
         glTranslatef(cameraX, cameraY, 0.0f);
         glScalef(zoom, zoom, 1.0f);
-
+    
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
+            // Calculate dynamic neuron vertical spacing based on neuron size
+            float neuronSpacing = baseNeuronSpacing + (100.0f / neuronSize); // Adjust the constant as needed
+    
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
                 float x = (currentLayer->id + 1) * layerSpacing;
                 float y = (float)(windowHeight / 2) - ((float)currentLayer->numNeurons * neuronSpacing / 2.0f) + ((float)currentNeuron->id * neuronSpacing);
-
+    
                 float alpha = currentNeuron->activation;
-                if (alpha < 0.1f) 
+                if (alpha < 0.1f)
                     alpha = 0.1f;
                 glColor4f(1.0f, 1.0f, 1.0f, alpha);
-
+    
                 glBegin(GL_TRIANGLE_FAN);
                 for (int angle = 0; angle < 360; angle += 10) {
                     float rad = angle * (3.14159f / 180.0f);
-                    glVertex2f(x + cos(rad) * 12.0f, y + sin(rad) * 12.0f);
+                    glVertex2f(x + cos(rad) * neuronSize, y + sin(rad) * neuronSize);
                 }
                 glEnd();
-
+    
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next) {
                     float dst_x = (currentLayer->next->id + 1) * layerSpacing;
                     float dst_y = (float)(windowHeight / 2) - ((float)currentLayer->next->numNeurons * neuronSpacing / 2.0f) + ((float)currentConnection->afterwardNeuron->id * neuronSpacing);
-
+    
                     float weightAlpha = fabs(currentConnection->weight);
                     glColor4f(1.0f, 1.0f, 1.0f, weightAlpha);
-
+    
                     glLineWidth(2.0f);
                     glBegin(GL_LINES);
                     glVertex2f(x, y);
@@ -150,10 +166,9 @@ namespace render {
                 }
             }
         }
-
+    
         glPopMatrix();
-
-        // Render the loss plot
+    
         render_loss_plot(windowWidth, windowHeight);
     }
 

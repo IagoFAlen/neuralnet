@@ -3,8 +3,18 @@
 
 #include <unistd.h> // For usleep
 #include <cmath> // For fabs, cos, sin
+#include <vector> // For storing loss values
+#include <algorithm> // For std::max_element
 
 namespace render {
+    float cameraX = 0.0f;
+    float cameraY = 0.0f;
+    float zoom = 1.0f;
+
+    // Store loss values for plotting
+    std::vector<float> lossHistory;
+    const size_t maxLossHistory = 500; // Maximum number of loss values to store
+
     void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
         glViewport(0, 0, width, height);
         glMatrixMode(GL_PROJECTION);
@@ -13,10 +23,23 @@ namespace render {
         glMatrixMode(GL_MODELVIEW);
     }
 
+    void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+        if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+            if (key == GLFW_KEY_S) cameraY += 10.0f;
+            if (key == GLFW_KEY_W) cameraY -= 10.0f;
+            if (key == GLFW_KEY_A) cameraX += 10.0f;
+            if (key == GLFW_KEY_D) cameraX -= 10.0f;
+            if (key == GLFW_KEY_E) zoom *= 1.1f;
+            if (key == GLFW_KEY_Q) zoom /= 1.1f;
+        }
+    }
+
     void init_opengl() {
         if (!glfwInit()) exit(EXIT_FAILURE);
     
-        glfwWindowHint(GLFW_SAMPLES, 4); // Enable 4x MSAA (Multi-Sample Anti-Aliasing)
+        // Request 4x MSAA before creating the window
+        glfwWindowHint(GLFW_SAMPLES, 4);
+    
         GLFWwindow* window = glfwCreateWindow(800, 600, "Neural Network Visualizer", NULL, NULL);
         if (!window) {
             glfwTerminate();
@@ -33,60 +56,92 @@ namespace render {
         glOrtho(0, width, 0, height, -1, 1);
         glMatrixMode(GL_MODELVIEW);
     
+        // Enable MSAA
+        glEnable(GL_MULTISAMPLE);
+    
+        // Enable smooth lines
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-        glEnable(GL_MULTISAMPLE); // Enable MSAA globally
-    
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glfwSetKeyCallback(glfwGetCurrentContext(), key_callback);
     }
-    
+
+    void render_loss_plot(int windowWidth, int windowHeight) {
+        if (lossHistory.empty()) return;
+
+        // Define the plot area (smaller and positioned at the bottom-right corner)
+        float plotWidth = windowWidth * 0.25f; // 25% of the window width
+        float plotHeight = windowHeight * 0.2f; // 20% of the window height
+        float plotX = windowWidth - plotWidth - 20.0f; // Add some margin
+        float plotY = 20.0f; // Add some margin
+
+        // Draw the plot background
+        glColor4f(0.1f, 0.1f, 0.1f, 0.8f); // Dark semi-transparent background
+        glBegin(GL_QUADS);
+        glVertex2f(plotX, plotY);
+        glVertex2f(plotX + plotWidth, plotY);
+        glVertex2f(plotX + plotWidth, plotY + plotHeight);
+        glVertex2f(plotX, plotY + plotHeight);
+        glEnd();
+
+        // Find the maximum loss value for scaling
+        float maxLoss = *std::max_element(lossHistory.begin(), lossHistory.end());
+        if (maxLoss <= 0.0f) maxLoss = 1.0f; // Avoid division by zero
+
+        // Draw the loss curve (white line)
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // White line
+        glLineWidth(2.0f);
+        glBegin(GL_LINE_STRIP);
+        for (size_t i = 0; i < lossHistory.size(); i++) {
+            float x = plotX + (float)i / (float)lossHistory.size() * plotWidth;
+            float y = plotY + (lossHistory[i] / maxLoss) * plotHeight;
+            glVertex2f(x, y);
+        }
+        glEnd();
+    }
+
     void render_network(NEURAL_NETWORK* nn) {
         glClear(GL_COLOR_BUFFER_BIT);
-    
+
         int windowWidth, windowHeight;
         glfwGetFramebufferSize(glfwGetCurrentContext(), &windowWidth, &windowHeight);
-    
+
+        // Render the neural network
         float layerSpacing = (float)windowWidth / ((float)nn->layersInfo->size + 1.0f);
         float neuronSpacing = 40.0f;
-        
-        // Enable smooth rendering before drawing neurons
-        glEnable(GL_LINE_SMOOTH);
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-        glEnable(GL_POLYGON_SMOOTH);
-        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-        
+
+        glPushMatrix();
+        glTranslatef(cameraX, cameraY, 0.0f);
+        glScalef(zoom, zoom, 1.0f);
+
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
                 float x = (currentLayer->id + 1) * layerSpacing;
                 float y = (float)(windowHeight / 2) - ((float)currentLayer->numNeurons * neuronSpacing / 2.0f) + ((float)currentNeuron->id * neuronSpacing);
-    
-                float activation = currentNeuron->activation;
-    
-                // Ensure minimum opacity so neurons are always visible
-                float minAlpha = 0.15f;
-                float alpha = minAlpha + activation * (1.0f - minAlpha); // Range [0.15, 1.0]
-    
-                // Neuron Circle (same size for all neurons)
-                float size = 12.0f;
+
+                float alpha = currentNeuron->activation;
+                if (alpha < 0.1f) 
+                    alpha = 0.1f;
                 glColor4f(1.0f, 1.0f, 1.0f, alpha);
+
                 glBegin(GL_TRIANGLE_FAN);
                 for (int angle = 0; angle < 360; angle += 10) {
                     float rad = angle * (3.14159f / 180.0f);
-                    glVertex2f(x + cos(rad) * size, y + sin(rad) * size);
+                    glVertex2f(x + cos(rad) * 12.0f, y + sin(rad) * 12.0f);
                 }
                 glEnd();
-    
-                // Draw Connections
+
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next) {
                     float dst_x = (currentLayer->next->id + 1) * layerSpacing;
                     float dst_y = (float)(windowHeight / 2) - ((float)currentLayer->next->numNeurons * neuronSpacing / 2.0f) + ((float)currentConnection->afterwardNeuron->id * neuronSpacing);
-    
+
                     float weightAlpha = fabs(currentConnection->weight);
-                    float minWeightAlpha = 0.15f; // Ensure weak connections remain visible
-                    weightAlpha = minWeightAlpha + weightAlpha * (1.0f - minWeightAlpha);
-    
                     glColor4f(1.0f, 1.0f, 1.0f, weightAlpha);
+
                     glLineWidth(2.0f);
                     glBegin(GL_LINES);
                     glVertex2f(x, y);
@@ -95,14 +150,28 @@ namespace render {
                 }
             }
         }
+
+        glPopMatrix();
+
+        // Render the loss plot
+        render_loss_plot(windowWidth, windowHeight);
     }
-    
+
     void* render_thread(void* arg) {
         NEURAL_NETWORK* nn = (NEURAL_NETWORK*)arg;
         init_opengl();
 
         while (!glfwWindowShouldClose(glfwGetCurrentContext())) {
             pthread_mutex_lock(&nn_mutex);
+
+            // Simulate adding a new loss value (replace with actual loss calculation)
+            static float simulatedLoss = 1.0f;
+            simulatedLoss *= 0.99f; // Simulate decreasing loss
+            lossHistory.push_back(simulatedLoss);
+            if (lossHistory.size() > maxLossHistory) {
+                lossHistory.erase(lossHistory.begin()); // Remove the oldest value
+            }
+
             render_network(nn);
             glfwSwapBuffers(glfwGetCurrentContext());
             pthread_mutex_unlock(&nn_mutex);

@@ -40,7 +40,7 @@ namespace render {
         // Request 4x MSAA before creating the window
         glfwWindowHint(GLFW_SAMPLES, 4);
     
-        GLFWwindow* window = glfwCreateWindow(800, 600, "Neural Network Visualizer", NULL, NULL);
+        GLFWwindow* window = glfwCreateWindow(800, 600, "Neural Network", NULL, NULL);
         if (!window) {
             glfwTerminate();
             exit(EXIT_FAILURE);

@@ -118,13 +118,13 @@ namespace render {
     
         // Calculate dynamic layer spacing
         float layerSpacing = windowWidth / (float)(nn->layersInfo->size + 1);
-        float spacingFactor = .5f;
+        float spacingFactor = 3.5f;
         layerSpacing *= spacingFactor;
-        float neuronSpacingFactor = std::max(1.0f, (float)maxNeurons / 1.0f);
+        float neuronSpacingFactor = std::max(1.0f, (float)maxNeurons / spacingFactor / (float)(nn->layersInfo->size + 1));
         layerSpacing = layerSpacing * (1 + (neuronSpacingFactor / 4.0f));
     
         // Calculate neuron size based on layer spacing
-        float neuronSize = 12.0f + (layerSpacing / 30.0f);
+        float neuronSize = 12.0f + (layerSpacing / (float)((nn->layersInfo->size + 1) * 10) );
         float baseNeuronSpacing = 100.0f;
     
         glPushMatrix();

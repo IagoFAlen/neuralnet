@@ -25,12 +25,25 @@ namespace render {
 
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+            int windowWidth, windowHeight;
+            glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
+
             if (key == GLFW_KEY_S) cameraY += 10.0f;
             if (key == GLFW_KEY_W) cameraY -= 10.0f;
             if (key == GLFW_KEY_A) cameraX += 10.0f;
             if (key == GLFW_KEY_D) cameraX -= 10.0f;
-            if (key == GLFW_KEY_E) zoom *= 1.1f;
-            if (key == GLFW_KEY_Q) zoom /= 1.1f;
+            if (key == GLFW_KEY_E) {
+                zoom *= 1.1f;
+                // Adjust camera position to keep the network centered
+                cameraX = (windowWidth / 2.0f) - ((windowWidth / 2.0f - cameraX) * 1.1f);
+                cameraY = (windowHeight / 4.0f) - ((windowHeight / 2.0f - cameraY) * 1.1f);
+            }
+            if (key == GLFW_KEY_Q) {
+                zoom /= 1.1f;
+                // Adjust camera position to keep the network centered
+                cameraX = (windowWidth / 2.0f) - ((windowWidth / 2.0f - cameraX) / 1.1f);
+                cameraY = (windowHeight / 2.0f) - ((windowHeight / 2.0f - cameraY) / 1.1f);
+            }
         }
     }
 
@@ -40,7 +53,9 @@ namespace render {
         // Request 4x MSAA before creating the window
         glfwWindowHint(GLFW_SAMPLES, 4);
     
-        GLFWwindow* window = glfwCreateWindow(800, 600, "Neural Network Visualizer", NULL, NULL);
+        GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+        GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Neural Network Visualizer", primaryMonitor, NULL);
         if (!window) {
             glfwTerminate();
             exit(EXIT_FAILURE);
@@ -106,58 +121,71 @@ namespace render {
 
     void render_network(NEURAL_NETWORK* nn) {
         glClear(GL_COLOR_BUFFER_BIT);
-    
+
         int windowWidth, windowHeight;
         glfwGetFramebufferSize(glfwGetCurrentContext(), &windowWidth, &windowHeight);
-    
+
         // Calculate maximum number of neurons across all layers
         int maxNeurons = 0;
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
             maxNeurons = std::max(maxNeurons, currentLayer->numNeurons);
         }
-    
+
         // Calculate dynamic layer spacing
         float layerSpacing = windowWidth / (float)(nn->layersInfo->size + 1);
         float spacingFactor = .5f;
         layerSpacing *= spacingFactor;
         float neuronSpacingFactor = std::max(1.0f, (float)maxNeurons / 1.0f);
         layerSpacing = layerSpacing * (1 + (neuronSpacingFactor / 4.0f));
-    
+
+        // Calculate network dimensions
+        float networkWidth = (nn->layersInfo->size + 1) * layerSpacing;
+        float networkHeight = maxNeurons * 100.0f; // Approximate height based on neuron spacing
+
+        // Calculate initial zoom to fit the network within the window
+        float zoomX = windowWidth / networkWidth;
+        float zoomY = windowHeight / networkHeight;
+        zoom = std::min(zoomX, zoomY) * 0.9f; // Slightly smaller to add some margin
+
+        // Calculate initial camera position to center the network
+        cameraX = (windowWidth / 2.0f) - (networkWidth / 2.0f) * zoom;
+        cameraY = (windowHeight / 2.0f) - (networkHeight / 4.0f) * zoom;
+
         // Calculate neuron size based on layer spacing
         float neuronSize = 12.0f + (layerSpacing / 30.0f);
         float baseNeuronSpacing = 100.0f;
-    
+
         glPushMatrix();
         glTranslatef(cameraX, cameraY, 0.0f);
         glScalef(zoom, zoom, 1.0f);
-    
+
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
             // Calculate dynamic neuron vertical spacing based on neuron size
             float neuronSpacing = baseNeuronSpacing + (100.0f / neuronSize); // Adjust the constant as needed
-    
+
             for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
                 float x = (currentLayer->id + 1) * layerSpacing;
                 float y = (float)(windowHeight / 2) - ((float)currentLayer->numNeurons * neuronSpacing / 2.0f) + ((float)currentNeuron->id * neuronSpacing);
-    
+
                 float alpha = currentNeuron->activation;
                 if (alpha < 0.1f)
                     alpha = 0.1f;
                 glColor4f(1.0f, 1.0f, 1.0f, alpha);
-    
+
                 glBegin(GL_TRIANGLE_FAN);
                 for (int angle = 0; angle < 360; angle += 10) {
                     float rad = angle * (3.14159f / 180.0f);
                     glVertex2f(x + cos(rad) * neuronSize, y + sin(rad) * neuronSize);
                 }
                 glEnd();
-    
+
                 for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next) {
                     float dst_x = (currentLayer->next->id + 1) * layerSpacing;
                     float dst_y = (float)(windowHeight / 2) - ((float)currentLayer->next->numNeurons * neuronSpacing / 2.0f) + ((float)currentConnection->afterwardNeuron->id * neuronSpacing);
-    
+
                     float weightAlpha = fabs(currentConnection->weight);
                     glColor4f(1.0f, 1.0f, 1.0f, weightAlpha);
-    
+
                     glLineWidth(2.0f);
                     glBegin(GL_LINES);
                     glVertex2f(x, y);
@@ -166,11 +194,12 @@ namespace render {
                 }
             }
         }
-    
+
         glPopMatrix();
-    
+
         render_loss_plot(windowWidth, windowHeight);
     }
+
 
     void* render_thread(void* arg) {
         NEURAL_NETWORK* nn = (NEURAL_NETWORK*)arg;

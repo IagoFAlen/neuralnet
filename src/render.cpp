@@ -220,7 +220,7 @@ namespace render {
             glfwSwapBuffers(glfwGetCurrentContext());
             pthread_mutex_unlock(&nn_mutex);
             glfwPollEvents();
-            usleep(16000);
+            usleep(4166);
         }
 
         glfwTerminate();

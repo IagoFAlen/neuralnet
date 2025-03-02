@@ -149,7 +149,7 @@ namespace render {
 
         // Calculate initial camera position to center the network
         cameraX = (windowWidth / 2.0f) - (networkWidth / 2.0f) * zoom;
-        cameraY = (windowHeight / 2.0f) - (networkHeight / 4.0f) * zoom;
+        cameraY = (windowHeight / 2.0f) - (networkHeight / ((maxNeurons / 10.0f) * 4)) * zoom;
 
         // Calculate neuron size based on layer spacing
         float neuronSize = 12.0f + (layerSpacing / 30.0f);
@@ -168,8 +168,8 @@ namespace render {
                 float y = (float)(windowHeight / 2) - ((float)currentLayer->numNeurons * neuronSpacing / 2.0f) + ((float)currentNeuron->id * neuronSpacing);
 
                 float alpha = currentNeuron->activation;
-                if (alpha < 0.1f)
-                    alpha = 0.1f;
+                if (alpha < 0.25f)
+                    alpha = 0.25f;
                 glColor4f(1.0f, 1.0f, 1.0f, alpha);
 
                 glBegin(GL_TRIANGLE_FAN);

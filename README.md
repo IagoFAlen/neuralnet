@@ -19,7 +19,7 @@ This project implements an adaptive neural network with configurable learning ra
 
 Ensure you have the following dependencies installed:
 
-- [DS_LIST Library](https://github.com/IagoFAlen/list) (for linked list management)
+- [LIST Library](https://github.com/IagoFAlen/list) (for linked list management)
 - `g++` (or any compatible C++ compiler)
 - `CMake`
 - `SDL2`
@@ -70,8 +70,6 @@ If `--render` is enabled, the OpenGL-based visualization system will display:
 - A real-time loss function graph.
 
 ## Example Video
-
-To include a video demonstration in GitHub's README, upload your video to a platform like YouTube and embed it using:
 
 ```md
 [![Neural Network Demo](https://img.youtube.com/vi/ZzN9SLgNDDk/0.jpg)](https://www.youtube.com/watch?v=ZzN9SLgNDDk)

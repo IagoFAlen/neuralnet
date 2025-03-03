@@ -27,12 +27,11 @@ Ensure you have the following dependencies installed:
 - `pthread`
 
 ### Build Instructions
-
+Inside root dir, run:
 ```sh
-mkdir build && cd build
-cmake ..
-make
+./make.sh
 ```
+It will create an executable file inside /out/build/
 
 ## Usage
 

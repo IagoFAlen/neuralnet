@@ -38,7 +38,7 @@ It will create an executable file inside /out/build/
 Run the program with command-line arguments:
 
 ```sh
-./path/to/neuralnet -l <num_layers> -n <neurons_per_layer> [--lr <learning_rate>] [--lambda <lambda>] [--epochs <epochs>] [--render]
+./path/to/neuralnets -l <num_layers> -n <neurons_per_layer> [--lr <learning_rate>] [--lambda <lambda>] [--epochs <epochs>] [--render]
 ```
 
 ### Example:

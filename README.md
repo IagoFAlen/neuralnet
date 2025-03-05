@@ -1,4 +1,4 @@
-# Neural Network Classification & Visualization
+# C/C++ Neural Network Classification & Visualization
 
 > **Tags:** Neural Network, C++, Machine Learning, AI, Deep Learning, Backpropagation, OpenGL, SDL2, Visualization, Optimization, Training, Classification
 

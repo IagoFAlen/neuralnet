@@ -234,10 +234,9 @@ namespace config
                     pthread_mutex_unlock(&nn_mutex); // Unlock mutex after updating the network
                 }
 
-
-                print_train(index, nn->epochs * lines->size);
                 index++;
             }
+            print_train(epoch, nn->epochs);
         }
     }
 

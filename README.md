@@ -38,13 +38,13 @@ It will create an executable file inside /out/build/
 Run the program with command-line arguments:
 
 ```sh
-./path/to/neuralnets -l <num_layers> -n <neurons_per_layer> [--lr <learning_rate>] [--lambda <lambda>] [--epochs <epochs>] [--render]
+./path/to/neuralnet -l <num_layers> -n <neurons_per_layer> [--lr <learning_rate>] [--lambda <lambda>] [--epochs <epochs>] [--render]
 ```
 
 ### Example:
 
 ```sh
-./out/build/neuralnets -l 5 -n 7 20 20 20 10 --lr 0.01 --lambda 0.001 --epochs 1000 --render
+./out/build/neuralnet -l 5 -n 7 20 20 20 10 --lr 0.01 --lambda 0.001 --epochs 1000 --render
 ```
 
 This initializes a neural network with 5 layers, neuron sizes `[7, 20, 20, 20, 10]`, a learning rate of 0.01, lambda of 0.001, and 1000 epochs with rendering enabled.

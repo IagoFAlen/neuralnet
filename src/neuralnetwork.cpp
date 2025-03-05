@@ -137,12 +137,12 @@ namespace neuralnets {
 
         if (nn->layersInfo->size == 0) return nn;
 
-        LAYER* prev_layer = nullptr;
+        LAYER* prev_layer = NULL;
 
-        for (ds_list::BLOCK* current_block = nn->layersInfo->list; current_block != nullptr; current_block = current_block->next) {
+        for (ds_list::BLOCK* current_block = nn->layersInfo->list; current_block != NULL; current_block = current_block->next) {
             LAYER* layer = create_layer(current_block->value, current_block->index);
 
-            if (prev_layer != nullptr) {
+            if (prev_layer != NULL) {
                 prev_layer->next = layer;
                 layer->previous = prev_layer;
             }
@@ -150,7 +150,7 @@ namespace neuralnets {
             if (current_block == nn->layersInfo->list) {
                 nn->inputLayer = layer;
             }
-            if (current_block->next == nullptr) {
+            if (current_block->next == NULL) {
                 nn->outputLayer = layer;
             }
 
@@ -168,8 +168,8 @@ namespace neuralnets {
 
         double xavierScale = sqrt(2.0 / (currentLayer->numNeurons + next_layer->numNeurons));
 
-        for (NEURON* src = currentLayer->neurons; src != nullptr; src = src->next) {
-            for (NEURON* dest = next_layer->neurons; dest != nullptr; dest = dest->next) {
+        for (NEURON* src = currentLayer->neurons; src != NULL; src = src->next) {
+            for (NEURON* dest = next_layer->neurons; dest != NULL; dest = dest->next) {
                 double weight = math::normal_distribution(0.0, xavierScale);
                 create_connection(src, weight, dest);
             }
@@ -179,7 +179,7 @@ namespace neuralnets {
     NEURAL_NETWORK* create_neural_network(unsigned int id, ds_list::LIST_INFO* layer_sizes_list, double learning_rate, double lambda, int epochs, bool render) {
         NEURAL_NETWORK* nn = create_neural_network_base(id, layer_sizes_list, learning_rate, lambda, epochs, render);
         
-        for (LAYER* current_layer = nn->inputLayer; current_layer != nullptr && current_layer->next != nullptr; current_layer = current_layer->next) {
+        for (LAYER* current_layer = nn->inputLayer; current_layer != NULL && current_layer->next != NULL; current_layer = current_layer->next) {
             connect_layers(current_layer, current_layer->next);
         }
 
@@ -200,7 +200,7 @@ namespace neuralnets {
 
                 double test_sum = 0.0;
                 if (currentNeuron->previousConnections != NULL) {
-                    for (CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != nullptr; currentConnection = currentConnection->nextAsPrevious){
+                    for (CONNECTION* currentConnection = currentNeuron->previousConnections; currentConnection != NULL; currentConnection = currentConnection->nextAsPrevious){
                         double multiplication = (currentConnection->backwardNeuron->activation * currentConnection->weight);
                         test_sum += multiplication;                        
                     }
@@ -218,15 +218,15 @@ namespace neuralnets {
 
     void loss_function(NEURAL_NETWORK* nn) {
         double lossFunction = 0.00;
-        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
             lossFunction += currentNeuron->target * log(currentNeuron->activation + 1e-9); // Add 1e-9 to avoid log(0)
         }
         lossFunction = -lossFunction;
 
         double l2_penalty = 0.0;
-        for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
-            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
-                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
+        for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
+            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
+                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next) {
                     l2_penalty += currentConnection->weight * currentConnection->weight;
                 }
             }
@@ -238,7 +238,7 @@ namespace neuralnets {
     }
 
     void track_output_layer_errors(NEURAL_NETWORK* nn) {
-        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
+        for (NEURON* currentNeuron = nn->outputLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
             currentNeuron->deltaLoss = currentNeuron->activation - currentNeuron->target;
         }
     }
@@ -267,9 +267,9 @@ namespace neuralnets {
     }
 
     void update_weights_and_biases(NEURAL_NETWORK* nn) {
-        for (LAYER* currentLayer = nn->inputLayer; currentLayer != nullptr; currentLayer = currentLayer->next) {
-            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != nullptr; currentNeuron = currentNeuron->next) {
-                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != nullptr; currentConnection = currentConnection->next) {
+        for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
+            for (NEURON* currentNeuron = currentLayer->neurons; currentNeuron != NULL; currentNeuron = currentNeuron->next) {
+                for (CONNECTION* currentConnection = currentNeuron->connections; currentConnection != NULL; currentConnection = currentConnection->next) {
                     double gradient = currentConnection->afterwardNeuron->deltaLoss * currentNeuron->activation;
 
                     gradient += nn->lambda * currentConnection->weight;

@@ -12,8 +12,8 @@ namespace render {
     float zoom = 1.0f;
 
     // Store loss values for plotting
-    std::vector<float> lossHistory;
-    const size_t maxLossHistory = 500; // Maximum number of loss values to store
+    std::vector<double> lossHistory;
+    const size_t maxLossHistory = 20; // Maximum number of loss values to store
 
     void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
         glViewport(0, 0, width, height);
@@ -87,38 +87,38 @@ namespace render {
 
     void render_loss_plot(int windowWidth, int windowHeight) {
         if (lossHistory.empty()) return;
-
-        // Define the plot area (smaller and positioned at the bottom-right corner)
-        float plotWidth = windowWidth * 0.25f; // 25% of the window width
-        float plotHeight = windowHeight * 0.2f; // 20% of the window height
-        float plotX = windowWidth - plotWidth - 20.0f; // Add some margin
-        float plotY = 20.0f; // Add some margin
-
-        // Draw the plot background
-        glColor4f(0.1f, 0.1f, 0.1f, 0.8f); // Dark semi-transparent background
+    
+        // Define a área do gráfico
+        float plotWidth = windowWidth * 0.25f;
+        float plotHeight = windowHeight * 0.2f;
+        float plotX = windowWidth - plotWidth - 20.0f;
+        float plotY = 20.0f;
+    
+        // Desenha o fundo do gráfico
+        glColor4f(0.1f, 0.1f, 0.1f, 0.8f);
         glBegin(GL_QUADS);
         glVertex2f(plotX, plotY);
         glVertex2f(plotX + plotWidth, plotY);
         glVertex2f(plotX + plotWidth, plotY + plotHeight);
         glVertex2f(plotX, plotY + plotHeight);
         glEnd();
-
-        // Find the maximum loss value for scaling
+    
+        // Encontra a perda máxima para normalizar os valores
         float maxLoss = *std::max_element(lossHistory.begin(), lossHistory.end());
-        if (maxLoss <= 0.0f) maxLoss = 1.0f; // Avoid division by zero
-
-        // Draw the loss curve (white line)
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // White line
+        if (maxLoss <= 0.0f) maxLoss = 1.0f; // Evita divisão por zero
+    
+        // Desenha a curva da loss function
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         glLineWidth(2.0f);
         glBegin(GL_LINE_STRIP);
         for (size_t i = 0; i < lossHistory.size(); i++) {
             float x = plotX + (float)i / (float)lossHistory.size() * plotWidth;
-            float y = plotY + (lossHistory[i] / maxLoss) * plotHeight;
+            float y = plotY + plotHeight - (lossHistory[i] / maxLoss) * plotHeight; // Inverte para descer conforme a loss diminui
             glVertex2f(x, y);
         }
         glEnd();
     }
-
+    
     void render_network(NEURAL_NETWORK* nn) {
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -208,12 +208,10 @@ namespace render {
         while (!glfwWindowShouldClose(glfwGetCurrentContext())) {
             pthread_mutex_lock(&nn_mutex);
 
-            // Simulate adding a new loss value (replace with actual loss calculation)
-            static float simulatedLoss = 1.0f;
-            simulatedLoss *= 0.99f; // Simulate decreasing loss
-            lossHistory.push_back(simulatedLoss);
+            double loss = nn->lossFunction;
+            lossHistory.push_back(loss);
             if (lossHistory.size() > maxLossHistory) {
-                lossHistory.erase(lossHistory.begin()); // Remove the oldest value
+                lossHistory.erase(lossHistory.begin());
             }
 
             render_network(nn);

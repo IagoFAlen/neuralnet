@@ -355,10 +355,10 @@ namespace config
         if (!file.is_open())
             utils::handle_error("Unable to open file for saving neural network.", 1);
 
-        int NEURAL_NETWORK_FORMAT = 1;
-        int LAYER_FORMAT = 2;
-        int NEURON_FORMAT = 3;
-        int CONNECTION_FORMAT = 4;
+        unsigned short int NEURAL_NETWORK_FORMAT = 1;
+        unsigned short int LAYER_FORMAT = 2;
+        unsigned short int NEURON_FORMAT = 3;
+        unsigned short int CONNECTION_FORMAT = 4;
 
         // SAVE NEURAL NETWORK INITIALIZATION BASIC INFO
         file << "NEURAL_NETWORK " << nn->id << endl;

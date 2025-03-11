@@ -205,10 +205,11 @@ namespace render {
         NEURAL_NETWORK* nn = (NEURAL_NETWORK*)arg;
         init_opengl();
 
+        double loss = 0;
         while (!glfwWindowShouldClose(glfwGetCurrentContext())) {
             pthread_mutex_lock(&nn_mutex);
 
-            double loss = nn->lossFunction;
+            loss = nn->lossFunction;
             lossHistory.push_back(loss);
             if (lossHistory.size() > maxLossHistory) {
                 lossHistory.erase(lossHistory.begin());

@@ -68,7 +68,7 @@ namespace neuralnets {
     // Layer in the network
     typedef struct Layer {
         unsigned int id;
-        int numNeurons;                 // Number of neurons in this layer
+        unsigned int numNeurons;                 // Number of neurons in this layer
         NEURON* neurons;                // Head of the neuron list
         NEURON* lastNeuron;             // Tail of the neuron list (NEW)
         Layer* next;                    // Next layer in the network
@@ -91,7 +91,7 @@ namespace neuralnets {
         LAYER* outputLayer;             // Pointer to the output layer
         double learningRate;            // Learning rate for gradient descent
         double lambda;                  // Lambda for gradient descent
-        int epochs;                     // Number of epochs
+        unsigned int epochs;            // Number of epochs
         double lossFunction;            // Cross Entropy Loss Function
         ds_list::LIST_INFO* layersInfo; // Contains the number of layers and number of neurons on each layer
         bool render;

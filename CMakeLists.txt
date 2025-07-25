@@ -20,7 +20,7 @@ add_executable(${PROJECT_NAME}
 
 # Add include directories
 include_directories(
-    ${CMAKE_SOURCE_DIR} # Add this to include globals.hpp
+    ${CMAKE_SOURCE_DIR}   # Para globals.hpp
     /usr/local/include
     /usr/include
 )

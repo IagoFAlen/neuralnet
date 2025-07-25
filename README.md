@@ -18,7 +18,7 @@ This project implements an adaptive neural network with configurable learning ra
 ### Requirements
 
 Ensure you have the following dependencies installed:
-
+- [FILE LIST Library] (https://github.com/IagoFAlen/file_list) (handle each file line)
 - [LIST Library](https://github.com/IagoFAlen/list) (for linked list management)
 - `g++` (or any compatible C++ compiler)
 - `CMake`

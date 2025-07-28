@@ -128,7 +128,7 @@ namespace render {
         // Calculate maximum number of neurons across all layers
         int maxNeurons = 0;
         for (LAYER* currentLayer = nn->inputLayer; currentLayer != NULL; currentLayer = currentLayer->next) {
-            maxNeurons = std::max(maxNeurons, currentLayer->numNeurons);
+            maxNeurons = std::max(maxNeurons, static_cast<int>(currentLayer->numNeurons));
         }
 
         // Calculate dynamic layer spacing

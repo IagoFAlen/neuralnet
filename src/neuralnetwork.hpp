@@ -68,7 +68,7 @@ namespace neuralnets {
     // Layer in the network
     typedef struct Layer {
         unsigned int id;
-        unsigned int numNeurons;                 // Number of neurons in this layer
+        unsigned int numNeurons;        // Number of neurons in this layer
         NEURON* neurons;                // Head of the neuron list
         NEURON* lastNeuron;             // Tail of the neuron list (NEW)
         Layer* next;                    // Next layer in the network

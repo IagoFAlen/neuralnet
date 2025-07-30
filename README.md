@@ -18,13 +18,18 @@ This project implements an adaptive neural network with configurable learning ra
 ### Requirements
 
 Ensure you have the following dependencies installed:
-- [FILE LIST Library] (https://github.com/IagoFAlen/file_list) (handle each file line)
 - [LIST Library](https://github.com/IagoFAlen/list) (for linked list management)
+- [FILE LIST Library](https://github.com/IagoFAlen/file_list) (handle each file line)
 - `g++` (or any compatible C++ compiler)
 - `CMake`
 - `SDL2`
 - `GLFW` & `OpenGL`
 - `pthread`
+
+#### Ubuntu
+```sh
+sudo apt install libgl-dev mesa-common-dev freeglut3-dev libglfw3-dev libglew-dev
+```
 
 ### Build Instructions
 Inside root dir, run:

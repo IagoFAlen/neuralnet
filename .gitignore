@@ -1,3 +1,4 @@
 /out/build/*
 /state/network_state.txt
 /visualize/*.log
+/prediction/*.log
